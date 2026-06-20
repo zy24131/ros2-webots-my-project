@@ -1,0 +1,19 @@
+---
+description: Do not change Robot root translation/rotation in Webots world or proto
+globs: worlds/**/*.wbt,protos/**/*.proto
+alwaysApply: false
+---
+
+# Robot root pose — do not modify
+
+When editing this project, **never change** the Robot node's top-level `translation` or `rotation` in `worlds/my_project.wbt` (or equivalent root fields in proto defaults).
+
+Keep exactly:
+
+```vrml
+Robot {
+  translation 0 -2.8549e-07 0.28
+  rotation 1 0 0 -1.5707953071795862
+```
+
+You may edit joints, bounding objects, meshes, controllers, and floor — but not this root pose unless the user explicitly asks.

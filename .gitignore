@@ -1,0 +1,21 @@
+# ROS2 colcon
+ros2_ws/build/
+ros2_ws/install/
+ros2_ws/log/
+
+# Webots build artifacts
+webots/controllers/**/build/
+webots/controllers/**/*.o
+webots/controllers/**/*.d
+webots/worlds/.my_project.wbproj
+
+# Editor / OS
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc

@@ -1,0 +1,9 @@
+# 轮距切换目标：0=窄轮距  1=宽轮距
+uint8 target
+uint8 TARGET_NARROW=0
+uint8 TARGET_WIDE=1
+---
+bool success
+string message
+---
+float32 progress

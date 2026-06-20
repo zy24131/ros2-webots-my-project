@@ -1,0 +1,887 @@
+#VRML_SIM R2025a utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackground.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/backgrounds/protos/TexturedBackgroundLight.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2025a/projects/objects/floors/protos/RectangleArena.proto"
+
+WorldInfo {
+  basicTimeStep 128
+}
+Viewpoint {
+  orientation -0.07275223671658325 0.7222728579378989 0.6877710598294713 0.29087337791110285
+  position -11.01389235867281 -2.6405770612267716 3.0340817519036456
+}
+TexturedBackground {
+}
+TexturedBackgroundLight {
+}
+RectangleArena {
+  floorSize 8 8
+}
+Robot {
+  translation -1.740870581551368e-06 3.993051223227795e-06 0.15325453936757777
+  rotation -0.9999999990214647 -1.391913805934239e-05 -4.199199768528275e-05 1.5707403697273243
+  children [
+    Pose {
+      rotation 1 0 0 1.570796
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0.5 0.5 0.5
+            roughness 1
+            metalness 0
+          }
+          geometry DEF part_002_NAUO2 Mesh {
+            url [
+              "../meshes/part_002_NAUO2.stl"
+            ]
+          }
+        }
+      ]
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        position -0.00024477572923231605
+        axis 0 1 0
+        anchor 0.643451 -0.377922 -0.172554
+      }
+      device [
+        RotationalMotor {
+          name "link_002_joint"
+          maxVelocity 5
+          minPosition -1.57
+          maxPosition 1.57
+          maxTorque 500
+        }
+        PositionSensor {
+          name "link_002_joint_sensor"
+        }
+      ]
+      endPoint Solid {
+        translation 0.643451 -0.377922 -0.172554
+        rotation 0 -1 0 0.00024477572868807144
+        children [
+          Pose {
+            translation -0.643451 0.377922 0.172554
+            rotation 1 0 0 1.570796
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0.5 0.5 0.5
+                  roughness 1
+                  metalness 0
+                }
+                geometry DEF part_005_NAUO5 Mesh {
+                  url [
+                    "../meshes/part_005_NAUO5.stl"
+                  ]
+                }
+              }
+            ]
+          }
+          HingeJoint {
+            jointParameters HingeJointParameters {
+              position 0.00016704760023404606
+              axis 0 1 0
+              anchor 0 -0.0675 0.334
+            }
+            device [
+              RotationalMotor {
+                name "link_003_joint"
+                maxVelocity 5
+                minPosition -1.57
+                maxPosition 1.57
+          maxTorque 500
+              }
+              PositionSensor {
+                name "link_003_joint_sensor"
+              }
+            ]
+            endPoint Solid {
+              translation 0 -0.0675 0.334
+              rotation 0 1 0 0.0001670475998889645
+              children [
+                Pose {
+                  translation -0.643451 0.445422 -0.161446
+                  rotation 1 0 0 1.570796
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0.5 0.5 0.5
+                        roughness 1
+                        metalness 0
+                      }
+                      geometry DEF part_006_NAUO6 Mesh {
+                        url [
+                          "../meshes/part_006_NAUO6.stl"
+                        ]
+                      }
+                    }
+                  ]
+                }
+                HingeJoint {
+                  jointParameters HingeJointParameters {
+                    position -5.381371979403833e-05
+                    axis -1 0 0
+                    anchor 0.257537 0.165 0
+                  }
+                  device [
+                    RotationalMotor {
+                      name "link_004_joint"
+                      maxVelocity 5
+                      minPosition -1.57
+                      maxPosition 1.57
+          maxTorque 100
+                    }
+                    PositionSensor {
+                      name "link_004_joint_sensor"
+                    }
+                  ]
+                  endPoint Solid {
+                    translation 0.257537 0.165 0
+                    rotation 1 0 0 5.3813719400799736e-05
+                    children [
+                      Pose {
+                        translation -0.900988 0.280422 -0.161446
+                        rotation 1 0 0 1.570796
+                        children [
+                          Shape {
+                            appearance PBRAppearance {
+                              baseColor 0.5 0.5 0.5
+                              roughness 1
+                              metalness 0
+                            }
+                            geometry DEF part_007_NAUO7 Mesh {
+                              url [
+                                "../meshes/part_007_NAUO7.stl"
+                              ]
+                            }
+                            castShadows FALSE
+                          }
+                        ]
+                      }
+                    ]
+                    name "link_004"
+                    boundingObject Pose {
+                      translation -0.900988 0.280422 -0.161446
+                      rotation 1 0 0 1.570796
+                      children [
+                        Mesh {
+                          url [
+                            "../meshes/part_007_NAUO7.stl"
+                          ]
+                        }
+                      ]
+                    }
+                    linearVelocity -1.834227184735105e-05 -0.00023377251626388964 2.2674158738984563e-06
+                    angularVelocity 0.0005430889541534257 -8.383126506458205e-05 -0.00013975754988310607
+                    physics Physics {
+                      density -1
+                      mass 10
+                      centerOfMass [
+                        -0.034275 0 0
+                      ]
+                      inertiaMatrix [
+                        1.335152 0.706052 0.706052
+                        0 0 0
+                      ]
+                    }
+                  }
+                }
+              ]
+              name "link_003"
+              boundingObject Pose {
+                translation -0.643451 0.445422 -0.161446
+                rotation 1 0 0 1.570796
+                children [
+                  Mesh {
+                    url [
+                      "../meshes/part_006_NAUO6.stl"
+                    ]
+                  }
+                ]
+              }
+              linearVelocity -6.579826967343381e-05 -0.00026870522929493254 -7.426140700061614e-06
+              angularVelocity 3.8027133750986286e-05 -6.254370452667706e-05 -0.00013811336031231594
+              physics Physics {
+                density -1
+                mass 5.26841
+                centerOfMass [
+                  0.066262 0.175 0
+                ]
+                inertiaMatrix [
+                  0.00970265 0.02955798 0.028636
+                  0 0 0
+                ]
+              }
+            }
+          }
+        ]
+        name "link_002"
+        boundingObject Pose {
+          translation -0.643451 0.377922 0.172554
+          rotation 1 0 0 1.570796
+          children [
+            Mesh {
+              url [
+                "../meshes/part_005_NAUO5.stl"
+              ]
+            }
+          ]
+        }
+        linearVelocity 0.00010773228153519401 -0.00028253468247305667 -1.1927590023161245e-05
+        angularVelocity 4.120146012169125e-06 -3.351158784271501e-05 0.0014940567163438505
+        physics Physics {
+          density -1
+          mass 26.042709
+          centerOfMass [
+            0.027788 -0.025 0.179102
+          ]
+          inertiaMatrix [
+            0.6654659 0.5096227 0.2748382
+            0 0 0
+          ]
+        }
+      }
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        position 0.00025268407207156354
+        axis 0 -1 0
+        anchor -0.202549 -0.377922 -0.172554
+      }
+      device [
+        RotationalMotor {
+          name "link_005_joint"
+          maxVelocity 5
+          minPosition -1.57
+          maxPosition 1.57
+          maxTorque 500
+        }
+        PositionSensor {
+          name "link_005_joint_sensor"
+        }
+      ]
+      endPoint Solid {
+        translation -0.202549 -0.377922 -0.172554
+        rotation 0 -1 0 0.0002526840727989897
+        children [
+          Pose {
+            translation 0.202549 0.377922 0.172554
+            rotation 1 0 0 1.570796
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0.5 0.5 0.5
+                  roughness 1
+                  metalness 0
+                }
+                geometry DEF part_001_NAUO1 Mesh {
+                  url [
+                    "../meshes/part_001_NAUO1.stl"
+                  ]
+                }
+              }
+            ]
+          }
+          HingeJoint {
+            jointParameters HingeJointParameters {
+              position 0.00016438439584968526
+              axis 0 -1 0
+              anchor 0 0.1575 0.334
+            }
+            device [
+              RotationalMotor {
+                name "link_006_joint"
+                maxVelocity 5
+                minPosition -1.57
+                maxPosition 1.57
+          maxTorque 500
+              }
+              PositionSensor {
+                name "link_006_joint_sensor"
+              }
+            ]
+            endPoint Solid {
+              translation 0 0.1575 0.334
+              rotation 0 -0.9999999999999999 0 0.00016438439646856374
+              children [
+                Pose {
+                  translation 0.202549 0.220422 -0.161446
+                  rotation 1 0 0 1.570796
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0.5 0.5 0.5
+                        roughness 1
+                        metalness 0
+                      }
+                      geometry DEF part_003_NAUO3 Mesh {
+                        url [
+                          "../meshes/part_003_NAUO3.stl"
+                        ]
+                      }
+                    }
+                  ]
+                }
+                HingeJoint {
+                  jointParameters HingeJointParameters {
+                    position -1.6110126503932065e-05
+                    axis -1 0 0
+                    anchor -0.163762 -0.06 0
+                  }
+                  device [
+                    RotationalMotor {
+                      name "link_007_joint"
+                      maxVelocity 5
+                      minPosition -1.57
+                      maxPosition 1.57
+          maxTorque 100
+                    }
+                    PositionSensor {
+                      name "link_007_joint_sensor"
+                    }
+                  ]
+                  endPoint Solid {
+                    translation -0.163762 -0.06 0
+                    rotation 1 0 0 1.6110133220393193e-05
+                    children [
+                      Pose {
+                        translation 0.36631 0.280422 -0.161446
+                        rotation 1 0 0 1.570796
+                        children [
+                          Shape {
+                            appearance PBRAppearance {
+                              baseColor 0.5 0.5 0.5
+                              roughness 1
+                              metalness 0
+                            }
+                            geometry DEF part_004_NAUO4 Mesh {
+                              url [
+                                "../meshes/part_004_NAUO4.stl"
+                              ]
+                            }
+                            castShadows FALSE
+                          }
+                        ]
+                      }
+                    ]
+                    name "link_007"
+                    boundingObject Pose {
+                      translation 0.36631 0.280422 -0.161446
+                      rotation 1 0 0 1.570796
+                      children [
+                        Mesh {
+                          url [
+                            "../meshes/part_004_NAUO4.stl"
+                          ]
+                        }
+                      ]
+                    }
+                    linearVelocity -3.1915666087169655e-05 -9.272560968301221e-05 -2.146084778544533e-05
+                    angularVelocity 0.0002214413657697486 -8.600917355350616e-05 0.0031843434626092912
+                    physics Physics {
+                      density -1
+                      mass 10
+                      centerOfMass [
+                        -0.038981 0 0
+                      ]
+                      inertiaMatrix [
+                        1.334738 0.705836 0.705836
+                        0 0 0
+                      ]
+                    }
+                  }
+                }
+              ]
+              name "link_006"
+              boundingObject Pose {
+                translation 0.202549 0.220422 -0.161446
+                rotation 1 0 0 1.570796
+                children [
+                  Mesh {
+                    url [
+                      "../meshes/part_003_NAUO3.stl"
+                    ]
+                  }
+                ]
+              }
+              linearVelocity -9.004082538056844e-05 0.00027993597617626746 -1.5045507171311237e-05
+              angularVelocity 3.52685818234179e-05 -6.0350420724813945e-05 0.0032105400381405875
+              physics Physics {
+                density -1
+                mass 5.268411
+                centerOfMass [
+                  -0.066262 -0.05 0
+                ]
+                inertiaMatrix [
+                  0.00970265 0.02955798 0.02863601
+                  0 0 0
+                ]
+              }
+            }
+          }
+        ]
+        name "link_005"
+        boundingObject Pose {
+          translation 0.202549 0.377922 0.172554
+          rotation 1 0 0 1.570796
+          children [
+            Mesh {
+              url [
+                "../meshes/part_001_NAUO1.stl"
+              ]
+            }
+          ]
+        }
+        linearVelocity 9.691243562613352e-05 0.000473482320449377 -1.4473195090951605e-05
+        angularVelocity 1.0356603718549033e-05 -3.829959421133593e-05 0.0016132117271379
+        physics Physics {
+          density -1
+          mass 26.042704
+          centerOfMass [
+            0.027788 -0.025 0.179102
+          ]
+          inertiaMatrix [
+            0.6654657 0.5096226 0.2748381
+            0 0 0
+          ]
+        }
+      }
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        position -0.00028592933219062644
+        axis 0 1 0
+        anchor -0.202549 -0.532922 -0.992554
+      }
+      device [
+        RotationalMotor {
+          name "link_008_joint"
+          maxVelocity 5
+          minPosition -1.57
+          maxPosition 1.57
+          maxTorque 500
+        }
+        PositionSensor {
+          name "link_008_joint_sensor"
+        }
+      ]
+      endPoint Solid {
+        translation -0.202549 -0.532922 -0.992554
+        rotation 0 -1 0 0.000285929331981512
+        children [
+          Pose {
+            translation 0.202549 0.532922 0.992554
+            rotation 1 0 0 1.570796
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0.5 0.5 0.5
+                  roughness 1
+                  metalness 0
+                }
+                geometry DEF part_008_NAUO8 Mesh {
+                  url [
+                    "../meshes/part_008_NAUO8.stl"
+                  ]
+                }
+              }
+            ]
+          }
+          HingeJoint {
+            jointParameters HingeJointParameters {
+              position -0.00021346387202198923
+              axis 0 -1 0
+              anchor 0 0.3125 -0.334
+            }
+            device [
+              RotationalMotor {
+                name "link_009_joint"
+                maxVelocity 5
+                minPosition -1.57
+                maxPosition 1.57
+          maxTorque 500
+              }
+              PositionSensor {
+                name "link_009_joint_sensor"
+              }
+            ]
+            endPoint Solid {
+              translation 0 0.3125 -0.334
+              rotation 0 1 0 0.00021346387287588407
+              children [
+                Pose {
+                  translation 0.202549 0.220422 1.326554
+                  rotation 1 0 0 1.570796
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0.5 0.5 0.5
+                        roughness 1
+                        metalness 0
+                      }
+                      geometry DEF part_009_NAUO9 Mesh {
+                        url [
+                          "../meshes/part_009_NAUO9.stl"
+                        ]
+                      }
+                    }
+                  ]
+                }
+                HingeJoint {
+                  jointParameters HingeJointParameters {
+                    position -6.38811432194167e-05
+                    axis -1 0 0
+                    anchor -0.163762 -0.06 0
+                  }
+                  device [
+                    RotationalMotor {
+                      name "link_010_joint"
+                      maxVelocity 5
+                      minPosition -1.57
+                      maxPosition 1.57
+          maxTorque 100
+                    }
+                    PositionSensor {
+                      name "link_010_joint_sensor"
+                    }
+                  ]
+                  endPoint Solid {
+                    translation -0.163762 -0.06 0
+                    rotation 1 0 0 6.388114421864874e-05
+                    children [
+                      Pose {
+                        translation 0.36631 0.280422 1.326554
+                        rotation 1 0 0 1.570796
+                        children [
+                          Shape {
+                            appearance PBRAppearance {
+                              baseColor 0.5 0.5 0.5
+                              roughness 1
+                              metalness 0
+                            }
+                            geometry DEF part_012_NAUO12 Mesh {
+                              url [
+                                "../meshes/part_012_NAUO12.stl"
+                              ]
+                            }
+                            castShadows FALSE
+                          }
+                        ]
+                      }
+                    ]
+                    name "link_010"
+                    boundingObject Pose {
+                      translation 0.36631 0.280422 1.326554
+                      rotation 1 0 0 1.570796
+                      children [
+                        Mesh {
+                          url [
+                            "../meshes/part_012_NAUO12.stl"
+                          ]
+                        }
+                      ]
+                    }
+                    linearVelocity 9.843131040119924e-06 -0.0001475301580133467 5.480767122121314e-05
+                    angularVelocity 0.0003298753457433736 8.183773271081536e-05 -0.0002252993597278694
+                    physics Physics {
+                      density -1
+                      mass 10
+                      centerOfMass [
+                        -0.107019 0 0
+                      ]
+                      inertiaMatrix [
+                        1.33501 0.705972 0.705972
+                        0 0 0
+                      ]
+                    }
+                  }
+                }
+              ]
+              name "link_009"
+              boundingObject Pose {
+                translation 0.202549 0.220422 1.326554
+                rotation 1 0 0 1.570796
+                children [
+                  Mesh {
+                    url [
+                      "../meshes/part_009_NAUO9.stl"
+                    ]
+                  }
+                ]
+              }
+              linearVelocity 7.002677831009554e-05 -1.3597513300574414e-05 4.525374439478477e-05
+              angularVelocity -0.00022565025367588773 5.529612907457382e-05 -0.00024397409609598083
+              physics Physics {
+                density -1
+                mass 5.268411
+                centerOfMass [
+                  -0.066262 -0.05 0
+                ]
+                inertiaMatrix [
+                  0.00970266 0.02955798 0.02863601
+                  0 0 0
+                ]
+              }
+            }
+          }
+        ]
+        name "link_008"
+        boundingObject Pose {
+          translation 0.202549 0.532922 0.992554
+          rotation 1 0 0 1.570796
+          children [
+            Mesh {
+              url [
+                "../meshes/part_008_NAUO8.stl"
+              ]
+            }
+          ]
+        }
+        linearVelocity -0.00014672663423777427 0.00012064206155564059 2.3508044083510726e-05
+        angularVelocity -0.00015358369404157844 3.348832744797181e-05 0.0018148896838137418
+        physics Physics {
+          density -1
+          mass 26.042714
+          centerOfMass [
+            -0.027788 0.13 -0.179102
+          ]
+          inertiaMatrix [
+            0.6654661 0.5096228 0.2748382
+            0 0 0
+          ]
+        }
+      }
+    }
+    HingeJoint {
+      jointParameters HingeJointParameters {
+        position 0.0002742838735248473
+        axis 0 -1 0
+        anchor 0.643451 -0.350422 -0.992554
+      }
+      device [
+        RotationalMotor {
+          name "link_011_joint"
+          maxVelocity 5
+          minPosition -1.57
+          maxPosition 1.57
+          maxTorque 500
+        }
+        PositionSensor {
+          name "link_011_joint_sensor"
+        }
+      ]
+      endPoint Solid {
+        translation 0.643451 -0.350422 -0.992554
+        rotation 0 -1 0 0.000274283873487484
+        children [
+          Pose {
+            translation -0.643451 0.350422 0.992554
+            rotation 1 0 0 1.570796
+            children [
+              Shape {
+                appearance PBRAppearance {
+                  baseColor 0.5 0.5 0.5
+                  roughness 1
+                  metalness 0
+                }
+                geometry DEF part_011_NAUO11 Mesh {
+                  url [
+                    "../meshes/part_011_NAUO11.stl"
+                  ]
+                }
+              }
+            ]
+          }
+          HingeJoint {
+            jointParameters HingeJointParameters {
+              position 0.00019271605032410602
+              axis 0 1 0
+              anchor 0 -0.095 -0.334
+            }
+            device [
+              RotationalMotor {
+                name "link_012_joint"
+                maxVelocity 5
+                minPosition -1.57
+                maxPosition 1.57
+          maxTorque 500
+              }
+              PositionSensor {
+                name "link_012_joint_sensor"
+              }
+            ]
+            endPoint Solid {
+              translation 0 -0.095 -0.334
+              rotation 0 1 0 0.00019271605125653328
+              children [
+                Pose {
+                  translation -0.643451 0.445422 1.326554
+                  rotation 1 0 0 1.570796
+                  children [
+                    Shape {
+                      appearance PBRAppearance {
+                        baseColor 0.5 0.5 0.5
+                        roughness 1
+                        metalness 0
+                      }
+                      geometry DEF part_010_NAUO10 Mesh {
+                        url [
+                          "../meshes/part_010_NAUO10.stl"
+                        ]
+                      }
+                    }
+                  ]
+                }
+                HingeJoint {
+                  jointParameters HingeJointParameters {
+                    position 6.36072712739762e-05
+                    anchor 0.163762 0.165 0
+                  }
+                  device [
+                    RotationalMotor {
+                      name "link_013_joint"
+                      maxVelocity 5
+                      minPosition -1.57
+                      maxPosition 1.57
+          maxTorque 100
+                    }
+                    PositionSensor {
+                      name "link_013_joint_sensor"
+                    }
+                  ]
+                  endPoint Solid {
+                    translation 0.163762 0.165 0
+                    rotation 1 0 0 6.360726779734086e-05
+                    children [
+                      Pose {
+                        translation -0.807213 0.280422 1.326554
+                        rotation 1 0 0 1.570796
+                        children [
+                          Shape {
+                            appearance PBRAppearance {
+                              baseColor 0.5 0.5 0.5
+                              roughness 1
+                              metalness 0
+                            }
+                            geometry DEF part_013_NAUO13 Mesh {
+                              url [
+                                "../meshes/part_013_NAUO13.stl"
+                              ]
+                            }
+                            castShadows FALSE
+                          }
+                        ]
+                      }
+                    ]
+                    name "link_013"
+                    boundingObject Pose {
+                      translation -0.807213 0.280422 1.326554
+                      rotation 1 0 0 1.570796
+                      children [
+                        Mesh {
+                          url [
+                            "../meshes/part_013_NAUO13.stl"
+                          ]
+                        }
+                      ]
+                    }
+                    linearVelocity 7.083901660842017e-05 -0.00020869159258536706 -6.241424476144294e-06
+                    angularVelocity 0.00042369884349394344 7.020150183633251e-05 -2.7028978622986574e-05
+                    physics Physics {
+                      density -1
+                      mass 10
+                      centerOfMass [
+                        0.107019 0 0
+                      ]
+                      inertiaMatrix [
+                        1.33512 0.706027 0.706027
+                        0 0 0
+                      ]
+                    }
+                  }
+                }
+              ]
+              name "link_012"
+              boundingObject Pose {
+                translation -0.643451 0.445422 1.326554
+                rotation 1 0 0 1.570796
+                children [
+                  Mesh {
+                    url [
+                      "../meshes/part_010_NAUO10.stl"
+                    ]
+                  }
+                ]
+              }
+              linearVelocity 0.00012048821446603678 -0.00025978733390792733 4.710299476259335e-06
+              angularVelocity 3.679616995570732e-05 4.814340822304039e-05 -3.319242840815283e-05
+              physics Physics {
+                density -1
+                mass 5.268411
+                centerOfMass [
+                  0.066262 0.175 0
+                ]
+                inertiaMatrix [
+                  0.00970266 0.02955798 0.02863601
+                  0 0 0
+                ]
+              }
+            }
+          }
+        ]
+        name "link_011"
+        boundingObject Pose {
+          translation -0.643451 0.350422 0.992554
+          rotation 1 0 0 1.570796
+          children [
+            Mesh {
+              url [
+                "../meshes/part_011_NAUO11.stl"
+              ]
+            }
+          ]
+        }
+        linearVelocity -0.0001151300901328579 -0.0003752619156668871 7.529296484078391e-06
+        angularVelocity 2.1594244581103367e-06 1.8187305407712433e-05 0.0018964616372413542
+        physics Physics {
+          density -1
+          mass 26.04272
+          centerOfMass [
+            -0.027788 -0.0525 -0.179102
+          ]
+          inertiaMatrix [
+            0.6654662 0.509623 0.2748383
+            0 0 0
+          ]
+        }
+      }
+    }
+  ]
+  boundingObject Pose {
+    rotation 1 0 0 1.570796
+    children [
+      Mesh {
+        url [
+          "../meshes/part_002_NAUO2.stl"
+        ]
+      }
+    ]
+  }
+  linearVelocity -3.9627671287619376e-05 -5.107553949270017e-06 -7.056405201747645e-06
+  angularVelocity -2.554079772022638e-05 -7.171904694459278e-06 -0.000899500087369835
+  physics Physics {
+    density -1
+    mass 100
+    centerOfMass [
+      0.220451 -0.455422 -0.582553
+    ]
+    inertiaMatrix [
+      7.390364 14.806289 7.816342
+      0 0 0
+    ]
+  }
+  supervisor TRUE
+  controller "ros2_bridge"
+}
