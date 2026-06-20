@@ -1,60 +1,19 @@
-// L3 转向 / 自转状态机（case 0~5）
-//
-// case 0~3：通过 SetTrackWidth Action 与 leg_controller 切换轮距
-// case 4~5：自转模式，无条件切换（不走 Action）
-//
-// 外界输入：
-//   /my_robot/motion_mode_switch   0=转向  1=顺时针自转  2=逆时针自转
-//   /my_robot/track_width_switch   0=窄轮距  1=宽轮距
+// L3 转向 / 自转状态机（case 0~5），显式 Trigger 驱动
 
 #include <chrono>
 #include <memory>
 #include <string>
 
 #include "my_robot_msgs/action/set_track_width.hpp"
+#include "robot_fsm/fsm_triggers.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
 #include "std_msgs/msg/int32.hpp"
 #include "std_msgs/msg/string.hpp"
 
-namespace {
-
-enum FsmState : int32_t {
-  kNarrowTrack = 0,
-  kSwitchToWide = 1,
-  kWideTrack = 2,
-  kSwitchToNarrow = 3,
-  kSpinLeft = 4,
-  kSpinRight = 5,
-};
-
-enum MotionModeSwitch : int32_t {
-  kSteering = 0,
-  kSpinClockwise = 1,
-  kSpinCounterClockwise = 2,
-};
-
-enum TrackWidthSwitch : int32_t {
-  kTrackNarrow = 0,
-  kTrackWide = 1,
-};
+using namespace robot_fsm;
 
 using SetTrackWidth = my_robot_msgs::action::SetTrackWidth;
-
-const char * ModeName(FsmState state)
-{
-  switch (state) {
-    case kNarrowTrack: return "narrow_track";
-    case kSwitchToWide: return "switch_to_wide";
-    case kWideTrack: return "wide_track";
-    case kSwitchToNarrow: return "switch_to_narrow";
-    case kSpinLeft: return "spin_left";
-    case kSpinRight: return "spin_right";
-    default: return "unknown";
-  }
-}
-
-}  // namespace
 
 class RobotFsm : public rclcpp::Node
 {
@@ -87,14 +46,68 @@ public:
       std::chrono::milliseconds(50),
       std::bind(&RobotFsm::Tick, this));
 
-    RCLCPP_INFO(get_logger(), "FSM start: narrow_track (case 0), Action client ready");
+    RCLCPP_INFO(get_logger(), "FSM start: narrow_track (case 0), trigger-driven");
   }
 
 private:
+  FsmTrigger DetectTrigger() const
+  {
+    if (motion_mode_ == kSpinClockwise) {
+      return FsmTrigger::kSpinClockwise;
+    }
+    if (motion_mode_ == kSpinCounterClockwise) {
+      return FsmTrigger::kSpinCounterClockwise;
+    }
+    if (motion_mode_ != kSteering) {
+      return FsmTrigger::kNone;
+    }
+    if (state_ == kSpinLeft || state_ == kSpinRight) {
+      return FsmTrigger::kReturnFromSpin;
+    }
+    if (goal_in_flight_) {
+      return FsmTrigger::kNone;
+    }
+    if (state_ == kNarrowTrack && track_width_ == kTrackWide) {
+      return FsmTrigger::kRequestWide;
+    }
+    if (state_ == kWideTrack && track_width_ == kTrackNarrow) {
+      return FsmTrigger::kRequestNarrow;
+    }
+    return FsmTrigger::kNone;
+  }
+
+  void FireTrigger(FsmTrigger trigger)
+  {
+    switch (trigger) {
+      case FsmTrigger::kSpinClockwise:
+        CancelActiveGoal();
+        state_ = kSpinRight;
+        return;
+      case FsmTrigger::kSpinCounterClockwise:
+        CancelActiveGoal();
+        state_ = kSpinLeft;
+        return;
+      case FsmTrigger::kReturnFromSpin:
+        state_ = kNarrowTrack;
+        return;
+      case FsmTrigger::kRequestWide:
+        SendTrackWidthGoal(SetTrackWidth::Goal::TARGET_WIDE, kSwitchToWide);
+        return;
+      case FsmTrigger::kRequestNarrow:
+        SendTrackWidthGoal(SetTrackWidth::Goal::TARGET_NARROW, kSwitchToNarrow);
+        return;
+      default:
+        return;
+    }
+  }
+
   void Tick()
   {
     const FsmState prev = state_;
-    UpdateState();
+    const FsmTrigger trigger = DetectTrigger();
+    if (trigger != FsmTrigger::kNone) {
+      FireTrigger(trigger);
+    }
     if (state_ != prev) {
       RCLCPP_INFO(
         get_logger(), "FSM %s -> %s (case %d)",
@@ -122,8 +135,9 @@ private:
       RCLCPP_WARN_THROTTLE(get_logger(), *get_clock(), 2000, "set_track_width server not ready");
       return;
     }
-    if (goal_in_flight_)
+    if (goal_in_flight_) {
       return;
+    }
 
     pending_switching_state_ = switching_state;
     state_ = switching_state;
@@ -168,59 +182,6 @@ private:
 
     state_ = (switching_state == kSwitchToWide) ? kWideTrack : kNarrowTrack;
     RCLCPP_INFO(get_logger(), "SetTrackWidth succeeded -> case %d", static_cast<int>(state_));
-  }
-
-  void UpdateState()
-  {
-    // 自转：取消 Action，直接进入 spin 态
-    if (motion_mode_ == kSpinClockwise) {
-      CancelActiveGoal();
-      state_ = kSpinRight;
-      return;
-    }
-    if (motion_mode_ == kSpinCounterClockwise) {
-      CancelActiveGoal();
-      state_ = kSpinLeft;
-      return;
-    }
-
-    if (motion_mode_ != kSteering)
-      return;
-
-    if (state_ == kSpinLeft || state_ == kSpinRight) {
-      state_ = kNarrowTrack;
-      return;
-    }
-
-    // Action 进行中：等 result_callback 改状态
-    if (goal_in_flight_)
-      return;
-
-    switch (state_) {
-      case kNarrowTrack:
-        if (track_width_ == kTrackWide) {
-          SendTrackWidthGoal(SetTrackWidth::Goal::TARGET_WIDE, kSwitchToWide);
-        }
-        break;
-
-      case kSwitchToWide:
-        // 等 callback
-        break;
-
-      case kWideTrack:
-        if (track_width_ == kTrackNarrow) {
-          SendTrackWidthGoal(SetTrackWidth::Goal::TARGET_NARROW, kSwitchToNarrow);
-        }
-        break;
-
-      case kSwitchToNarrow:
-        // 等 callback
-        break;
-
-      default:
-        state_ = kNarrowTrack;
-        break;
-    }
   }
 
   void PublishOutputs()

@@ -1,10 +1,4 @@
 <launch>
-  <node pkg="robot_fsm" exec="robot_fsm" output="screen"/>
-  <node pkg="steering_input" exec="steering_input_node" output="screen"/>
-  <node pkg="leg_controller" exec="leg_controller" output="screen">
-    <param name="wide_steering_angle" value="0.5"/>
-  </node>
-  <node pkg="mobility_bringup" exec="mobility_node" output="screen">
-    <param name="wheel_speed" value="0.2"/>
-  </node>
+  <!-- 仿真：Webots + hardware_bridge 由 run_webots.sh 启动 -->
+  <include file="$(find-pkg-share robot_fsm)/launch/control_bringup.launch.xml"/>
 </launch>

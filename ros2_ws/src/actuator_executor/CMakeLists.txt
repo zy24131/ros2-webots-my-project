@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(robot_fsm)
+project(actuator_executor)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -9,27 +9,21 @@ find_package(ament_cmake REQUIRED)
 find_package(my_robot_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
+find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(rosidl_default_runtime REQUIRED)
 
-include_directories(include)
-
-add_executable(robot_fsm
-  src/robot_fsm.cpp
-  src/fsm_triggers.cpp)
+add_executable(actuator_executor_node src/actuator_executor_node.cpp)
 ament_target_dependencies(
-  robot_fsm
+  actuator_executor_node
   my_robot_msgs
   rclcpp
   rclcpp_action
-  std_msgs)
+  sensor_msgs
+  std_msgs
+  rosidl_default_runtime)
 
-install(TARGETS robot_fsm
+install(TARGETS actuator_executor_node
   DESTINATION lib/${PROJECT_NAME})
-
-install(DIRECTORY include/
-  DESTINATION include)
-
-install(DIRECTORY launch config
-  DESTINATION share/${PROJECT_NAME})
 
 ament_package()

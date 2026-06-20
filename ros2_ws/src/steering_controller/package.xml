@@ -1,14 +1,15 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>steering_input</name>
+  <name>steering_controller</name>
   <version>0.1.0</version>
-  <description>Map steering wheel input to steering curvature for my_project.</description>
-  <maintainer email="user@todo.todo">user</maintainer>
+  <description>Steering wheel to SteeringCommand via my_robot_maps.</description>
+  <maintainer email="zy2413105@buaa.edu.cn">xujunming</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   <depend>my_robot_maps</depend>
+  <depend>my_robot_msgs</depend>
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
 
