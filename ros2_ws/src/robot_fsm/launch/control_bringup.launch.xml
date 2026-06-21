@@ -1,9 +1,6 @@
 <launch>
   <let name="config" value="$(find-pkg-share robot_fsm)/config/my_robot.yaml"/>
 
-  <node pkg="robot_fsm" exec="robot_fsm" output="screen">
-    <param from="$(var config)" path="robot_fsm"/>
-  </node>
   <node pkg="steering_controller" exec="steering_controller_node" output="screen">
     <param from="$(var config)" path="steering_controller"/>
   </node>

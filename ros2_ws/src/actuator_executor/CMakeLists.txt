@@ -8,7 +8,6 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(my_robot_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(rclcpp_action REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(rosidl_default_runtime REQUIRED)
@@ -18,7 +17,6 @@ ament_target_dependencies(
   actuator_executor_node
   my_robot_msgs
   rclcpp
-  rclcpp_action
   sensor_msgs
   std_msgs
   rosidl_default_runtime)

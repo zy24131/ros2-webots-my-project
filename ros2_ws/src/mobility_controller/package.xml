@@ -3,7 +3,7 @@
 <package format="3">
   <name>mobility_controller</name>
   <version>0.1.0</version>
-  <description>Wheel speeds with curvature differential for my_project.</description>
+  <description>Uniform wheel speeds by FSM mode for my_project.</description>
   <maintainer email="zy2413105@buaa.edu.cn">xujunming</maintainer>
   <license>Apache-2.0</license>
 

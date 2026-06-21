@@ -3,15 +3,8 @@ steering_controller:
 
 actuator_executor:
   ros__parameters:
-    position_tolerance: 0.05
-    wide_steering_angle: 0.5
     command_timeout_ms: 450
 
 mobility_controller:
   ros__parameters:
     wheel_speed: 0.2
-    track_half_width_narrow: 1.07
-    track_half_width_wide: 1.25
-
-robot_fsm:
-  ros__parameters: {}
