@@ -4,7 +4,8 @@
 #include <cstdint>
 
 namespace robot_fsm {
-
+  
+// 定义 FsmState 枚举类型
 enum FsmState : int32_t {
   kNarrowTrack = 0,
   kSwitchToWide = 1,

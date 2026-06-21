@@ -16,6 +16,7 @@
 
 namespace {
 
+  //加k源头：Google C++ 编码规范（最主流）
 enum class DriveMode {
   kNarrowTrack,
   kWideTrack,
@@ -25,6 +26,7 @@ enum class DriveMode {
   kUnknown,
 };
 
+  // 根据模式字符串返回对应的 DriveMode
 DriveMode ModeFromString(const std::string & mode)
 {
   if (mode == "narrow_track") {
@@ -68,20 +70,25 @@ public:
   SteeringControllerNode()
   : Node("steering_controller")
   {
+    // 创建方向盘订阅者
     wheel_sub_ = create_subscription<std_msgs::msg::Float64>(
       "/my_robot/steering_wheel", 10,
       [this](const std_msgs::msg::Float64::SharedPtr msg) {
         steering_angle_deg_ = msg->data;
       });
 
+    // 创建模式订阅者
     mode_sub_ = create_subscription<std_msgs::msg::String>(
       "/my_robot/mode", 10,
       [this](const std_msgs::msg::String::SharedPtr msg) {
         mode_ = msg->data;
       });
 
+    // 创建转向命令发布者
     cmd_pub_ = create_publisher<my_robot_msgs::msg::SteeringCommand>(
       "/my_robot/steering_command", 10);
+
+    // 创建转向曲率发布者
     curvature_pub_ = create_publisher<std_msgs::msg::Float64>(
       "/my_robot/steering_curvature", 10);
 

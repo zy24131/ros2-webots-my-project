@@ -13,21 +13,27 @@
 
 using namespace robot_fsm;
 
+// 定义 Action 类型
 using SetTrackWidth = my_robot_msgs::action::SetTrackWidth;
 
 class RobotFsm : public rclcpp::Node
 {
 public:
+  // 定义 Action 句柄类型
   using GoalHandleSetTrackWidth = rclcpp_action::ClientGoalHandle<SetTrackWidth>;
 
   RobotFsm()
   : Node("robot_fsm")
   {
+    // 初始化状态为窄轮距
     state_ = kNarrowTrack;
 
+    // 创建模式发布者
     mode_pub_ = create_publisher<std_msgs::msg::String>("/my_robot/mode", 10);
+    // 创建状态发布者
     state_pub_ = create_publisher<std_msgs::msg::Int32>("/my_robot/fsm_state", 10);
 
+    // 创建运动模式订阅者
     motion_mode_sub_ = create_subscription<std_msgs::msg::Int32>(
       "/my_robot/motion_mode_switch", 10,
       [this](const std_msgs::msg::Int32::SharedPtr msg) {
@@ -40,8 +46,10 @@ public:
         track_width_ = msg->data;
       });
 
+    // 创建轮距切换 Action 客户端
     action_client_ = rclcpp_action::create_client<SetTrackWidth>(this, "set_track_width");
 
+    // 创建定时器
     timer_ = create_wall_timer(
       std::chrono::milliseconds(50),
       std::bind(&RobotFsm::Tick, this));
@@ -50,6 +58,8 @@ public:
   }
 
 private:
+
+  // 检测触发器
   FsmTrigger DetectTrigger() const
   {
     if (motion_mode_ == kSpinClockwise) {
@@ -76,6 +86,7 @@ private:
     return FsmTrigger::kNone;
   }
 
+  // 根据触发器执行相应的动作
   void FireTrigger(FsmTrigger trigger)
   {
     switch (trigger) {
@@ -101,6 +112,7 @@ private:
     }
   }
 
+  // 主循环
   void Tick()
   {
     const FsmState prev = state_;
@@ -116,6 +128,7 @@ private:
     PublishOutputs();
   }
 
+  // 取消当前正在执行的 Action 目标
   void CancelActiveGoal()
   {
     if (!goal_in_flight_ || !active_goal_handle_) {
@@ -129,6 +142,7 @@ private:
     active_goal_handle_.reset();
   }
 
+  // 发送轮距切换 Action 目标
   void SendTrackWidthGoal(uint8_t target, FsmState switching_state)
   {
     if (!action_client_->wait_for_action_server(std::chrono::milliseconds(0))) {
@@ -165,6 +179,7 @@ private:
     action_client_->async_send_goal(goal_msg, send_options);
   }
 
+  // 处理轮距切换 Action 结果
   void OnActionResult(
     const GoalHandleSetTrackWidth::WrappedResult & result,
     FsmState switching_state)
@@ -184,6 +199,7 @@ private:
     RCLCPP_INFO(get_logger(), "SetTrackWidth succeeded -> case %d", static_cast<int>(state_));
   }
 
+  // 发布输出
   void PublishOutputs()
   {
     std_msgs::msg::String mode_msg;

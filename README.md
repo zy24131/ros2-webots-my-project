@@ -32,7 +32,8 @@ ros2 launch robot_fsm my_robot.launch.xml
 
 ## 控制数据流
 
-详见 [docs/steering_flow.md](docs/steering_flow.md)。
+详见 [docs/steering_flow.md](docs/steering_flow.md)。  
+ROS2 通信机制说明见 [docs/ros2_communication.md](docs/ros2_communication.md)。
 
 ```text
 steering_wheel → steering_controller → steering_command
