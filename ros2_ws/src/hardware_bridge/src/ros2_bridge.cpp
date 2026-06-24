@@ -1,6 +1,6 @@
 // L1 硬件桥接（Webots 仿真实现；真机可替换 valve_driver/PLC 实现）
 //
-// 订阅：joint_commands、wheel_speeds（优先）/ wheel_speed（兼容）
+// 订阅：joint_commands、internal/wheel_speeds（优先）/ internal/wheel_speed（兼容）
 // 发布：joint_states
 
 #include <array>
@@ -76,11 +76,11 @@ public:
       std::bind(&HardwareBridgeNode::JointCommandCallback, this, std::placeholders::_1));
 
     wheel_speeds_sub_ = create_subscription<my_robot_msgs::msg::WheelSpeeds>(
-      "/my_robot/wheel_speeds", 10,
+      "/my_robot/internal/wheel_speeds", 10,
       std::bind(&HardwareBridgeNode::WheelSpeedsCallback, this, std::placeholders::_1));
 
     wheel_speed_sub_ = create_subscription<std_msgs::msg::Float64>(
-      "/my_robot/wheel_speed", 10,
+      "/my_robot/internal/wheel_speed", 10,
       std::bind(&HardwareBridgeNode::WheelSpeedCallback, this, std::placeholders::_1));
 
     joint_state_pub_ = create_publisher<sensor_msgs::msg::JointState>(

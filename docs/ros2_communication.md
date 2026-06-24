@@ -24,20 +24,25 @@
 
 ## 已使用的 ROS2 机制
 
-### 1. Topic（话题）— 主力
+### 1. 对外 Topic（HMI / 操作员）
 
 | 话题 | 类型 | 发布者 | 订阅者 | 说明 |
 |------|------|--------|--------|------|
 | `/my_robot/mode` | `String` | `robot_fsm` | `steering_controller`、`mobility_controller` | FSM 当前模式 |
 | `/my_robot/fsm_state` | `Int32` | `robot_fsm` | 调试 | case 0~5 |
 | `/my_robot/steering_wheel` | `Float64` | 外部 | `steering_controller` | 有符号转向角（度） |
-| `/my_robot/steering_command` | `SteeringCommand` | `steering_controller` | `actuator_executor` | 8 关节目标 |
-| `/my_robot/steering_curvature` | `Float64` | `steering_controller` | `mobility_controller` | 曲率 κ |
-| `/my_robot/joint_commands` | `JointState` | `actuator_executor` | `hardware_bridge` | 8 腿最终命令（唯一发布者） |
 | `/my_robot/joint_states` | `JointState` | `hardware_bridge` | `actuator_executor` | 12 关节反馈 |
-| `/my_robot/wheel_speeds` | `WheelSpeeds` | `mobility_controller` | `hardware_bridge` | 四轮差速 rad/s |
-| `/my_robot/wheel_speed` | `Float64` | `mobility_controller` | `hardware_bridge` | 兼容旧接口，四轮同速 |
 | `/my_robot/system_ready` | `Bool` | `actuator_executor` | 可选监听 | joint_states 就绪后为 true |
+
+### 2. 内部 Topic（`/my_robot/internal/`，节点间专用）
+
+| 话题 | 类型 | 发布者 | 订阅者 | 说明 |
+|------|------|--------|--------|------|
+| `/my_robot/internal/steering_curvature` | `Float64` | `steering_controller` | `mobility_controller` | 曲率 κ |
+| `/my_robot/internal/wheel_speeds` | `WheelSpeeds` | `mobility_controller` | `hardware_bridge` | 四轮差速 rad/s |
+| `/my_robot/internal/wheel_speed` | `Float64` | `mobility_controller` | `hardware_bridge` | 兼容，四轮同速 |
+| `/my_robot/steering_command` | `SteeringCommand` | `steering_controller` | `actuator_executor` | 8 关节目标 |
+| `/my_robot/joint_commands` | `JointState` | `actuator_executor` | `hardware_bridge` | 8 腿最终命令 |
 
 ### 2. Action（动作）— 1 个
 

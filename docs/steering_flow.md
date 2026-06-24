@@ -5,17 +5,16 @@
         │
         ▼
 steering_controller ──► /my_robot/steering_command (SteeringCommand)
-        │                 /my_robot/steering_curvature
+        │
         ▼
 actuator_executor ──► /my_robot/joint_commands  (唯一发布者，450ms 看门狗)
         ▲
         │ SetTrackWidth Action（轮距切换）
 robot_fsm ──► /my_robot/mode
 
-/my_robot/steering_curvature
+/my_robot/internal/steering_curvature     ← 内部话题，不对 HMI 暴露
         ▼
-mobility_controller ──► /my_robot/wheel_speeds（曲率差速）
-        │                 /my_robot/wheel_speed（兼容）
+mobility_controller ──► /my_robot/internal/wheel_speeds
         ▼
 hardware_bridge (Webots) ──► joint_states
 ```

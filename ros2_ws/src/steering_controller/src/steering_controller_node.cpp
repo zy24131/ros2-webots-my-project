@@ -86,7 +86,7 @@ public:
 
     // 创建转向曲率发布者
     curvature_pub_ = create_publisher<std_msgs::msg::Float64>(
-      "/my_robot/steering_curvature", 10);
+      "/my_robot/internal/steering_curvature", 10);
 
     timer_ = create_wall_timer(
       std::chrono::milliseconds(20),

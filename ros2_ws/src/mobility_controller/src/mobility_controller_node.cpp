@@ -26,16 +26,16 @@ public:
     declare_parameter("track_half_width_wide", 1.25);
 
     wheel_speeds_pub_ = create_publisher<my_robot_msgs::msg::WheelSpeeds>(
-      "/my_robot/wheel_speeds", 10);
+      "/my_robot/internal/wheel_speeds", 10);
     legacy_speed_pub_ = create_publisher<std_msgs::msg::Float64>(
-      "/my_robot/wheel_speed", 10);
+      "/my_robot/internal/wheel_speed", 10);
 
     mode_sub_ = create_subscription<std_msgs::msg::String>(
       "/my_robot/mode", 10,
       [this](const std_msgs::msg::String::SharedPtr msg) { mode_ = msg->data; });
 
     curvature_sub_ = create_subscription<std_msgs::msg::Float64>(
-      "/my_robot/steering_curvature", 10,
+      "/my_robot/internal/steering_curvature", 10,
       [this](const std_msgs::msg::Float64::SharedPtr msg) {
         curvature_ = msg->data;
       });
