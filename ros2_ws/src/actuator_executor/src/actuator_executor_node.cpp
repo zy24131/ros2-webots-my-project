@@ -47,7 +47,7 @@ public:
   : Node("actuator_executor")
   {
     declare_parameter("position_tolerance", 0.05);
-    declare_parameter("wide_steering_angle", 0.5);
+    declare_parameter("wide_neutral_angle_deg", 45.0);
     declare_parameter("command_timeout_ms", 450);
 
     cmd_pub_ = create_publisher<sensor_msgs::msg::JointState>(
@@ -99,11 +99,10 @@ private:
     }
   }
 
-  double JointAngleForActionTarget(const JointDef & joint, uint8_t target) const
+  double JointAngleForActionTarget(uint8_t target) const
   {
-    const double wide = get_parameter("wide_steering_angle").as_double();
     if (target == SetTrackWidth::Goal::TARGET_WIDE) {
-      return joint.is_wheel_arm ? wide : 0.0;
+      return get_parameter("wide_neutral_angle_deg").as_double() * M_PI / 180.0;
     }
     return 0.0;
   }
@@ -112,7 +111,7 @@ private:
   {
     out.clear();
     for (const JointDef & joint : kJoints) {
-      out[joint.name] = JointAngleForActionTarget(joint, target);
+      out[joint.name] = JointAngleForActionTarget(target);
     }
   }
 

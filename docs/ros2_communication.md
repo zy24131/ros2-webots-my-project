@@ -11,11 +11,12 @@
 当前工程主要使用：
 
 - **Topic（话题）** — 节点间连续数据流，主力
+- **Service（服务）** — 模式/轮距意图切换（一问一答）
 - **Action（动作）** — 轮距切换等「要等待完成」的长任务
 - **Parameter（参数）** — launch + yaml 配置
 - **Timer（定时器）** — 固定频率发布控制量
 
-未使用：Service、Lifecycle、Component、tf2、ros2_control 等（见下文）。
+未使用：Lifecycle、Component、tf2、ros2_control 等（见下文）。
 
 对**上位机 + Webots 仿真**栈来说，这样是合理且常见的。
 
@@ -27,8 +28,6 @@
 
 | 话题 | 类型 | 发布者 | 订阅者 | 说明 |
 |------|------|--------|--------|------|
-| `/my_robot/motion_mode_switch` | `Int32` | 外部 | `robot_fsm` | 0=转向 1=顺时针自转 2=逆时针 |
-| `/my_robot/track_width_switch` | `Int32` | 外部 | `robot_fsm` | 0=窄 1=宽 |
 | `/my_robot/mode` | `String` | `robot_fsm` | `steering_controller`、`mobility_controller` | FSM 当前模式 |
 | `/my_robot/fsm_state` | `Int32` | `robot_fsm` | 调试 | case 0~5 |
 | `/my_robot/steering_wheel` | `Float64` | 外部 | `steering_controller` | 有符号转向角（度） |
@@ -48,14 +47,30 @@
 
 定义文件：`my_robot_msgs/action/SetTrackWidth.action`
 
-### 3. 自定义消息
+### 3. Service（服务）— 2 个
+
+| Service | 服务端 | 用途 |
+|---------|--------|------|
+| `/my_robot/set_motion_mode` | `robot_fsm` | 0=转向 1=顺时针自转 2=逆时针自转 |
+| `/my_robot/set_track_width_switch` | `robot_fsm` | 0=窄轮距 1=宽轮距（意图；实际伸缩走 Action） |
+
+定义文件：`my_robot_msgs/srv/SetMotionMode.srv`、`SetTrackWidthSwitch.srv`
+
+示例：
+
+```bash
+ros2 service call /my_robot/set_motion_mode my_robot_msgs/srv/SetMotionMode "{mode: 0}"
+ros2 service call /my_robot/set_track_width_switch my_robot_msgs/srv/SetTrackWidthSwitch "{track_width: 1}"
+```
+
+### 4. 自定义消息
 
 | 消息 | 文件 | 用途 |
 |------|------|------|
 | `SteeringCommand` | `msg/SteeringCommand.msg` | 8 关节角 + source + valid |
 | `WheelSpeeds` | `msg/WheelSpeeds.msg` | 4 轮角速度 + valid |
 
-### 4. Parameter（参数）
+### 5. Parameter（参数）
 
 集中配置：`robot_fsm/config/my_robot.yaml`
 
@@ -66,7 +81,7 @@
 
 Launch 通过 `<param from="..." path="节点名"/>` 加载。
 
-### 5. Timer（定时器）
+### 6. Timer（定时器）
 
 | 节点 | 周期 | 作用 |
 |------|------|------|
@@ -80,7 +95,7 @@ Launch 通过 `<param from="..." path="节点名"/>` 加载。
 ## 数据流简图
 
 ```text
-外部输入 (Int32 / Float64)
+外部输入 (Service / Float64)
         │
         ▼
    robot_fsm ────── Action ──────► actuator_executor ── Topic ──► hardware_bridge
@@ -99,7 +114,7 @@ mobility_controller ── Topic (wheel_speeds) ──► hardware_bridge
 
 | 机制 | 当前状态 | 典型使用场景 |
 |------|----------|--------------|
-| **Service（服务）** | 未用 | 一次性请求/应答：急停、标定、查状态 |
+| **Service（服务）** | 已用 | 模式/轮距意图切换 |
 | **Lifecycle（生命周期）** | 未用 | 严格启动顺序、休眠/唤醒 |
 | **Component（组件化）** | 未用 | 多节点合并单进程，降低延迟 |
 | **tf2** | 未用 | 坐标变换、SLAM、多传感器融合 |
@@ -117,7 +132,7 @@ mobility_controller ── Topic (wheel_speeds) ──► hardware_bridge
 |------|------|------------|
 | 连续控制量、状态流 | **Topic** | 关节角、轮速、mode |
 | 要等待完成、有进度 | **Action** | 轮距切换 SetTrackWidth |
-| 偶发、一问一答 | **Service** | 暂未使用（可加急停/标定） |
+| 偶发、一问一答 | **Service** | 模式切换 SetMotionMode / SetTrackWidthSwitch |
 
 ---
 

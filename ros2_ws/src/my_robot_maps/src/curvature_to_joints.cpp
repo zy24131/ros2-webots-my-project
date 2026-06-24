@@ -43,6 +43,7 @@ JointAngles map(double curvature, TrackMode track_mode)
     angles[6] = signed_deg_to_rad(arm_deg, sign);
     angles[7] = signed_deg_to_rad(wheel_deg, sign);
   } else {
+    //窄轮距
     const double wheel_deg = narrow::curvature_to_wheel_out(k);
     const double middle = narrow::wheel_out_to_middle(wheel_deg);
     const double arm_deg = narrow::middle_to_arm_in(middle);

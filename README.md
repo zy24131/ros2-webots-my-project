@@ -4,7 +4,7 @@
 my_project/
 ├── webots/                     # 仿真模型
 ├── ros2_ws/src/
-│   ├── my_robot_msgs/          # SteeringCommand, WheelSpeeds, SetTrackWidth
+│   ├── my_robot_msgs/          # Msg / Srv / Action
 │   ├── my_robot_maps/          # 映射算法库（纯 C++）
 │   ├── hardware_bridge/        # L1：IO 桥接（Webots；真机可换驱动）
 │   ├── steering_controller/    # L2：方向盘 → SteeringCommand
@@ -68,7 +68,20 @@ steering_curvature → mobility_controller → wheel_speeds
 | `/my_robot/wheel_speeds` | 四轮差速 rad/s |
 | `/my_robot/system_ready` | joint_states 就绪 |
 | `/my_robot/mode` | FSM 当前 mode |
+| `/my_robot/set_motion_mode` | 运动模式 Service |
+| `/my_robot/set_track_width_switch` | 轮距意图 Service |
 | `/set_track_width` | 轮距切换 Action |
+
+模式切换示例：
+
+```bash
+# 转向模式
+ros2 service call /my_robot/set_motion_mode my_robot_msgs/srv/SetMotionMode "{mode: 0}"
+# 逆时针自转
+ros2 service call /my_robot/set_motion_mode my_robot_msgs/srv/SetMotionMode "{mode: 2}"
+# 切宽轮距意图
+ros2 service call /my_robot/set_track_width_switch my_robot_msgs/srv/SetTrackWidthSwitch "{track_width: 1}"
+```
 
 ## Launch 分层
 

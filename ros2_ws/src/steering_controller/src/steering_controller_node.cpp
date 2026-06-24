@@ -2,6 +2,7 @@
 
 #include <array>
 #include <chrono>
+#include <cmath>
 #include <memory>
 #include <string>
 
@@ -54,14 +55,6 @@ my_robot_maps::TrackMode ToTrackMode(DriveMode mode)
          my_robot_maps::TrackMode::kNarrow;
 }
 
-my_robot_maps::TrackMode TrackModeFromFsmMode(const std::string & mode)
-{
-  if (mode == "wide_track" || mode == "switch_to_wide") {
-    return my_robot_maps::TrackMode::kWide;
-  }
-  return my_robot_maps::TrackMode::kNarrow;
-}
-
 }  // namespace
 
 class SteeringControllerNode : public rclcpp::Node
@@ -70,6 +63,9 @@ public:
   SteeringControllerNode()
   : Node("steering_controller")
   {
+    declare_parameter("wide_neutral_angle_deg", 45.0);
+    declare_parameter("steering_deadband_deg", 3.0);
+
     // 创建方向盘订阅者
     wheel_sub_ = create_subscription<std_msgs::msg::Float64>(
       "/my_robot/steering_wheel", 10,
@@ -103,12 +99,6 @@ private:
   void Publish()
   {
     const DriveMode drive_mode = ModeFromString(mode_);
-    const my_robot_maps::TrackMode track_mode = TrackModeFromFsmMode(mode_);
-
-    std_msgs::msg::Float64 curvature_msg;
-    curvature_msg.data = my_robot_maps::steering_angle_to_curvature(
-      steering_angle_deg_, track_mode);
-    curvature_pub_->publish(curvature_msg);
 
     my_robot_msgs::msg::SteeringCommand cmd;
     cmd.header.stamp = now();
@@ -125,7 +115,9 @@ private:
       const auto direction = drive_mode == DriveMode::kSpinLeft ?
         my_robot_maps::SpinDirection::kLeft :
         my_robot_maps::SpinDirection::kRight;
-      const auto angles = my_robot_maps::map_spin(steering_angle_deg_, direction);
+      // 自转：map_spin → joint_positions[1,3,5,7] = 轮臂 ±10°
+      // 对应 link_003/006/009/012；节臂 [0,2,4,6] 保持 0
+      const auto angles = my_robot_maps::map_spin(0.0, direction);
       FillCommand(cmd, angles, my_robot_msgs::msg::SteeringCommand::SOURCE_SPIN);
       cmd_pub_->publish(cmd);
       return;
@@ -136,9 +128,35 @@ private:
       map_mode = DriveMode::kNarrowTrack;
     }
 
+    const my_robot_maps::TrackMode track_mode = ToTrackMode(map_mode);
+    const double deadband = get_parameter("steering_deadband_deg").as_double();
+
+    // 宽轮距 + 方向盘在死区内：8 关节保持宽中性位（默认 45°），不用 map(0)
+    if (map_mode == DriveMode::kWideTrack &&
+      std::abs(steering_angle_deg_) < deadband)
+    {
+      const double neutral_rad =
+        get_parameter("wide_neutral_angle_deg").as_double() * M_PI / 180.0;
+      my_robot_maps::JointAngles angles{};
+      angles.fill(neutral_rad);
+
+      std_msgs::msg::Float64 curvature_msg;
+      curvature_msg.data = 0.0;
+      curvature_pub_->publish(curvature_msg);
+
+      FillCommand(cmd, angles, my_robot_msgs::msg::SteeringCommand::SOURCE_MAP);
+      cmd_pub_->publish(cmd);
+      return;
+    }
+
     const double curvature = my_robot_maps::steering_angle_to_curvature(
-      steering_angle_deg_, ToTrackMode(map_mode));
-    const auto angles = my_robot_maps::map(curvature, ToTrackMode(map_mode));
+      steering_angle_deg_, track_mode);
+
+    std_msgs::msg::Float64 curvature_msg;
+    curvature_msg.data = curvature;
+    curvature_pub_->publish(curvature_msg);
+
+    const auto angles = my_robot_maps::map(curvature, track_mode);
     FillCommand(cmd, angles, my_robot_msgs::msg::SteeringCommand::SOURCE_MAP);
     cmd_pub_->publish(cmd);
   }

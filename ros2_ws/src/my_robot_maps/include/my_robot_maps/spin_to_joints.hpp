@@ -5,8 +5,7 @@
 
 namespace my_robot_maps {
 
-// 自转：节臂保持 0，仅 4 个轮臂按对角线交替偏转
-// steering_angle_deg 为幅度 (°)，|角|<3° 时全 0
+// 自转：节臂 0，仅 4 个轮臂对角 ±10°（不跟方向盘）
 JointAngles map_spin(double steering_angle_deg, SpinDirection direction);
 
 }  // namespace my_robot_maps
