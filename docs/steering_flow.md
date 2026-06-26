@@ -1,20 +1,20 @@
 # 转向控制数据流
 
 ```text
-/my_robot/steering_wheel (°)
+/my_robot/steering_input (°)
         │
         ▼
-steering_controller ──► /my_robot/steering_command (SteeringCommand)
+steering_control ──► /my_robot/steering_command (SteeringCommand)
         │
         ▼
-actuator_executor ──► /my_robot/joint_commands  (唯一发布者，450ms 看门狗)
+actuator_control ──► /my_robot/joint_commands  (唯一发布者，450ms 看门狗)
         ▲
         │ SetTrackWidth Action（轮距切换）
-robot_fsm ──► /my_robot/mode
+fsm ──► /my_robot/mode
 
 /my_robot/internal/steering_curvature     ← 内部话题，不对 HMI 暴露
         ▼
-mobility_controller ──► /my_robot/internal/wheel_speeds
+wheel_speed_control ──► /my_robot/internal/wheel_speeds
         ▼
 hardware_bridge (Webots) ──► joint_states
 ```
@@ -23,15 +23,38 @@ hardware_bridge (Webots) ──► joint_states
 
 | 层 | 节点 | 职责 |
 |----|------|------|
-| L3 | `robot_fsm` | Trigger 驱动 case 0~5，Action 客户端 |
-| L2 | `steering_controller` | map / map_spin → SteeringCommand |
-| L2 | `actuator_executor` | 合并命令 + Action + 看门狗 → joint_commands |
-| L2 | `mobility_controller` | 曲率差速 WheelSpeeds |
+| L3 | `fsm` | Trigger 驱动 case 0~5，Action 客户端 |
+| L2 | `steering_control` | map / map_spin → SteeringCommand |
+| L2 | `actuator_control` | 合并命令 + Action + 看门狗 → joint_commands |
+| L2 | `wheel_speed_control` | 四轮轮速（当前固定为 0） |
 | L1 | `hardware_bridge` | Webots IO（真机替换 valve_driver） |
 
-## 就绪链
+## 运动模式（SSOT）
 
-`actuator_executor` 收到 8 路 `joint_states` 后发布 `/my_robot/system_ready=true`。
+FSM 状态、Service 意图、`/my_robot/mode` 字符串统一在 `fsm/motion_mode.hpp`：
+
+| 类型 | 用途 |
+|------|------|
+| `RobotMode` | FSM 状态 + mode 话题（case 0~5） |
+| `MotionIntent` | `set_motion_mode` 服务（转向/自转意图） |
+| `TrackWidthIntent` | `set_track_width_switch` 服务 |
+| `FsmTrigger` | FSM 内部触发器 |
+
+辅助函数：`ModeToString` / `ModeFromString`、`IsTrackDriving`、`IsSwitching`、`IsSpin`。
+
+## 关节索引（SSOT）
+
+命名与下标统一在 `fsm/include/fsm/joint_config.hpp`，各节点不再各自维护 `kJoints`。
+
+| 索引体系 | 数量 | 用途 | 表名 |
+|----------|------|------|------|
+| `steering_index` | 8 | `SteeringCommand` / `joint_commands` | `kSteeringJoints` |
+| `wheel_speed_index` | 4 | `WheelSpeeds.speeds` | `kDriveWheels` |
+| `webots_index` | 12 | Webots 电机遍历 + `joint_states` | `kWebotsActuators` |
+
+`kSteeringJoints` 顺序：节臂/轮臂交替（002 节、003 轮、005 节、006 轮 …）。  
+自转只动轮臂，索引见 `kWheelArmIndices`（1,3,5,7）。
+
 
 
 
@@ -60,7 +83,7 @@ webots --mode=realtime webots/worlds/my_project.wbt
 终端2 控制栈
 
 source ~/ros2_webots/my_project/ros2_ws/install/setup.bash
-ros2 launch robot_fsm my_robot.launch.xml
+ros2 launch fsm my_robot.launch.xml
 
 
 
@@ -73,7 +96,7 @@ ros2 service call /my_robot/set_motion_mode my_robot_msgs/srv/SetMotionMode "{mo
 ros2 service call /my_robot/set_track_width_switch my_robot_msgs/srv/SetTrackWidthSwitch "{track_width: 0}"
 
 # 方向盘 30°（必须持续发，否则 450ms 后关节归零）
-ros2 topic pub /my_robot/steering_wheel std_msgs/msg/Float64 "{data: 30.0}" -r 20
+ros2 topic pub /my_robot/steering_input std_msgs/msg/Float64 "{data: 30.0}" -r 20
 
 
 ros2 topic echo /my_robot/joint_commands --once

@@ -21,4 +21,16 @@ if [ -f "${ROOT}/ros2_ws/install/setup.bash" ]; then
   source "${ROOT}/ros2_ws/install/setup.bash"
 fi
 
+PARAM_FILE=""
+if command -v ros2 >/dev/null 2>&1; then
+  PKG_PREFIX="$(ros2 pkg prefix fsm 2>/dev/null || true)"
+  if [ -n "${PKG_PREFIX}" ] && [ -f "${PKG_PREFIX}/share/fsm/config/hardware_bridge_params.yaml" ]; then
+    PARAM_FILE="${PKG_PREFIX}/share/fsm/config/hardware_bridge_params.yaml"
+  fi
+fi
+
+if [ -n "${PARAM_FILE}" ]; then
+  exec "${HERE}/ros2_bridge_bin" --ros-args --params-file "${PARAM_FILE}" "$@"
+fi
+
 exec "${HERE}/ros2_bridge_bin" "$@"

@@ -1,0 +1,14 @@
+<launch>
+  <node pkg="fsm" exec="fsm_node" output="screen">
+    <param from="$(find-pkg-share fsm)/config/fsm_params.yaml"/>
+  </node>
+  <node pkg="steering_control" exec="steering_control_node" output="screen">
+    <param from="$(find-pkg-share fsm)/config/steering_control_params.yaml"/>
+  </node>
+  <node pkg="actuator_control" exec="actuator_control_node" output="screen">
+    <param from="$(find-pkg-share fsm)/config/actuator_control_params.yaml"/>
+  </node>
+  <node pkg="wheel_speed_control" exec="wheel_speed_control_node" output="screen">
+    <param from="$(find-pkg-share fsm)/config/wheel_speed_control_params.yaml"/>
+  </node>
+</launch>

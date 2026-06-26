@@ -858,6 +858,49 @@ Robot {
         }
       }
     }
+    Solid {
+      translation 0.220451 -0.280422 -0.582551
+      name "imu_link"
+      children [
+        Shape {
+          appearance PBRAppearance {
+            baseColor 0.1 0.85 0.2
+            roughness 0.25
+            metalness 0
+          }
+          geometry Sphere {
+            radius 0.04
+          }
+        }
+        Pose {
+          rotation 0 0 1 0
+          children [
+            Shape {
+              appearance PBRAppearance {
+                baseColor 1 0.2 0.2
+                roughness 0.3
+                metalness 0
+              }
+              geometry Cylinder {
+                height 0.12
+                radius 0.004
+              }
+            }
+          ]
+        }
+      ]
+      device [
+        Accelerometer {
+          name "imu_accelerometer"
+        }
+        Gyro {
+          name "imu_gyro"
+        }
+        InertialUnit {
+          name "imu_inertial_unit"
+        }
+      ]
+    }
   ]
   boundingObject Pose {
     rotation 1 0 0 1.570796

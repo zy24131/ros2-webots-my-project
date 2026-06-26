@@ -1,0 +1,66 @@
+actuator_control:
+  ros__parameters:
+    position_tolerance: 0.05
+    wide_neutral_angle_deg: 45.0
+    command_timeout_ms: 450
+    qos:
+      joint_commands_pub:
+        profile: reliable
+        depth: 10
+      joint_states_sub:
+        profile: sensor_data
+        depth: 10
+      steering_command_sub:
+        profile: reliable
+        depth: 10
+
+wheel_speed_control:
+  ros__parameters:
+    qos:
+      wheel_speeds_pub:
+        profile: sensor_data
+        depth: 10
+
+steering_control:
+  ros__parameters:
+    wide_neutral_angle_deg: 45.0
+    steering_deadband_deg: 3.0
+    qos:
+      steering_input_sub:
+        profile: sensor_data
+        depth: 10
+      mode_sub:
+        profile: reliable
+        depth: 10
+      steering_command_pub:
+        profile: reliable
+        depth: 10
+      steering_curvature_pub:
+        profile: sensor_data
+        depth: 10
+
+fsm:
+  ros__parameters:
+    qos:
+      mode_pub:
+        profile: reliable
+        depth: 10
+      fsm_state_pub:
+        profile: reliable
+        depth: 10
+
+hardware_bridge:
+  ros__parameters:
+    qos:
+      joint_commands_sub:
+        profile: reliable
+        depth: 10
+      wheel_speeds_sub:
+        profile: sensor_data
+        depth: 10
+      joint_states_pub:
+        profile: sensor_data
+        depth: 10
+      imu_pub:
+        profile: sensor_data
+        depth: 10

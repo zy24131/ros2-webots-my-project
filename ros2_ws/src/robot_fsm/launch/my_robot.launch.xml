@@ -1,4 +1,0 @@
-<launch>
-  <!-- 仿真：Webots + hardware_bridge 由 run_webots.sh 启动 -->
-  <include file="$(find-pkg-share robot_fsm)/launch/control_bringup.launch.xml"/>
-</launch>

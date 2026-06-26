@@ -1,7 +1,7 @@
 // L1 硬件桥接（Webots 仿真实现；真机可替换 valve_driver/PLC 实现）
 //
-// 订阅：joint_commands、internal/wheel_speeds（优先）/ internal/wheel_speed（兼容）
-// 发布：joint_states
+// 订阅：joint_commands、internal/wheel_speeds
+// 发布：joint_states、imu
 
 #include <array>
 #include <cmath>
@@ -12,37 +12,44 @@
 #include <unordered_map>
 #include <vector>
 
+#include "fsm/joint_config.hpp"
+#include "fsm/qos.hpp"
 #include "my_robot_msgs/msg/wheel_speeds.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/imu.hpp"
 #include "sensor_msgs/msg/joint_state.hpp"
-#include "std_msgs/msg/float64.hpp"
+#include <webots/Accelerometer.hpp>
+#include <webots/Gyro.hpp>
+#include <webots/InertialUnit.hpp>
 #include <webots/Motor.hpp>
 #include <webots/PositionSensor.hpp>
 #include <webots/Supervisor.hpp>
 
 namespace {
 
-struct JointInfo {
-  const char * name;
-  const char * sensor_name;
-  bool is_wheel;
-  int wheel_speed_index;  // WheelSpeeds[0..3]，非轮为 -1
+struct Actuator {
+  std::string name;
+  webots::Motor * motor;
+  webots::PositionSensor * sensor;
+  bool is_drive_wheel;
+  int wheel_speed_index;
 };
 
-constexpr JointInfo kJoints[] = {
-  {"link_002_joint", "link_002_joint_sensor", false, -1},
-  {"link_003_joint", "link_003_joint_sensor", false, -1},
-  {"link_004_joint", nullptr, true, 0},
-  {"link_005_joint", "link_005_joint_sensor", false, -1},
-  {"link_006_joint", "link_006_joint_sensor", false, -1},
-  {"link_007_joint", nullptr, true, 1},
-  {"link_008_joint", "link_008_joint_sensor", false, -1},
-  {"link_009_joint", "link_009_joint_sensor", false, -1},
-  {"link_010_joint", nullptr, true, 2},
-  {"link_011_joint", "link_011_joint_sensor", false, -1},
-  {"link_012_joint", "link_012_joint_sensor", false, -1},
-  {"link_013_joint", nullptr, true, 3},
-};
+void RpyToQuaternion(
+  double roll, double pitch, double yaw,
+  double & qx, double & qy, double & qz, double & qw)
+{
+  const double cr = std::cos(roll * 0.5);
+  const double sr = std::sin(roll * 0.5);
+  const double cp = std::cos(pitch * 0.5);
+  const double sp = std::sin(pitch * 0.5);
+  const double cy = std::cos(yaw * 0.5);
+  const double sy = std::sin(yaw * 0.5);
+  qw = cr * cp * cy + sr * sp * sy;
+  qx = sr * cp * cy - cr * sp * sy;
+  qy = cr * sp * cy + sr * cp * sy;
+  qz = cr * cp * sy - sr * sp * cy;
+}
 
 }  // namespace
 
@@ -54,39 +61,54 @@ public:
     robot_(robot),
     timestep_(timestep)
   {
-    for (const JointInfo & joint : kJoints) {
+    for (const fsm::WebotsActuatorSpec & spec : fsm::kWebotsActuators) {
       Actuator act;
-      act.name = joint.name;
-      act.motor = robot_->getMotor(joint.name);
-      act.is_wheel = joint.is_wheel;
-      act.wheel_speed_index = joint.wheel_speed_index;
-      if (joint.sensor_name != nullptr) {
-        act.sensor = robot_->getPositionSensor(joint.sensor_name);
+      act.name = spec.motor_name;
+      act.motor = robot_->getMotor(spec.motor_name);
+      act.is_drive_wheel = spec.is_drive_wheel;
+      act.wheel_speed_index = spec.wheel_speed_index;
+      if (spec.sensor_name != nullptr) {
+        act.sensor = robot_->getPositionSensor(spec.sensor_name);
         act.sensor->enable(timestep_);
       } else {
         act.sensor = nullptr;
         act.motor->setPosition(INFINITY);
       }
       actuators_.push_back(act);
-      motor_by_name_[joint.name] = act.motor;
+      motor_by_name_[spec.motor_name] = act.motor;
     }
 
     joint_cmd_sub_ = create_subscription<sensor_msgs::msg::JointState>(
-      "/my_robot/joint_commands", 10,
+      "/my_robot/joint_commands",
+      fsm::QoSFromParams(this, "qos.joint_commands_sub", "reliable"),
       std::bind(&HardwareBridgeNode::JointCommandCallback, this, std::placeholders::_1));
 
     wheel_speeds_sub_ = create_subscription<my_robot_msgs::msg::WheelSpeeds>(
-      "/my_robot/internal/wheel_speeds", 10,
+      "/my_robot/internal/wheel_speeds",
+      fsm::QoSFromParams(this, "qos.wheel_speeds_sub", "sensor_data"),
       std::bind(&HardwareBridgeNode::WheelSpeedsCallback, this, std::placeholders::_1));
 
-    wheel_speed_sub_ = create_subscription<std_msgs::msg::Float64>(
-      "/my_robot/internal/wheel_speed", 10,
-      std::bind(&HardwareBridgeNode::WheelSpeedCallback, this, std::placeholders::_1));
-
     joint_state_pub_ = create_publisher<sensor_msgs::msg::JointState>(
-      "/my_robot/joint_states", 10);
+      "/my_robot/joint_states",
+      fsm::QoSFromParams(this, "qos.joint_states_pub", "sensor_data"));
 
-    RCLCPP_INFO(get_logger(), "hardware_bridge (Webots): joint_commands + wheel_speeds IO");
+    imu_accel_ = robot_->getAccelerometer("imu_accelerometer");
+    imu_gyro_ = robot_->getGyro("imu_gyro");
+    imu_inertial_ = robot_->getInertialUnit("imu_inertial_unit");
+    if (imu_accel_ && imu_gyro_ && imu_inertial_) {
+      imu_accel_->enable(timestep_);
+      imu_gyro_->enable(timestep_);
+      imu_inertial_->enable(timestep_);
+      imu_pub_ = create_publisher<sensor_msgs::msg::Imu>(
+        "/my_robot/imu",
+        fsm::QoSFromParams(this, "qos.imu_pub", "sensor_data"));
+      has_imu_ = true;
+      RCLCPP_INFO(get_logger(), "IMU enabled at model center -> /my_robot/imu");
+    } else {
+      RCLCPP_WARN(get_logger(), "IMU devices not found in Webots model");
+    }
+
+    RCLCPP_INFO(get_logger(), "hardware_bridge (Webots): joint_commands + internal/wheel_speeds IO");
   }
 
   void Step()
@@ -94,6 +116,7 @@ public:
     ApplyJointCommands();
     ApplyWheelSpeed();
     PublishJointStates();
+    PublishImu();
   }
 
 private:
@@ -111,10 +134,31 @@ private:
     has_wheel_speeds_ = true;
   }
 
-  void WheelSpeedCallback(const std_msgs::msg::Float64::SharedPtr msg)
+  void ApplyWheelSpeed()
   {
-    std::lock_guard<std::mutex> lock(mutex_);
-    wheel_speed_ = msg->data;
+    my_robot_msgs::msg::WheelSpeeds speeds_msg;
+    bool has_speeds = false;
+    {
+      std::lock_guard<std::mutex> lock(mutex_);
+      if (has_wheel_speeds_) {
+        speeds_msg = wheel_speeds_;
+        has_speeds = true;
+      }
+    }
+
+    for (Actuator & act : actuators_) {
+      if (!act.is_drive_wheel) {
+        continue;
+      }
+      act.motor->setPosition(INFINITY);
+      double speed = 0.0;
+      if (has_speeds && speeds_msg.valid && act.wheel_speed_index >= 0 &&
+        static_cast<size_t>(act.wheel_speed_index) < speeds_msg.speeds.size())
+      {
+        speed = speeds_msg.speeds[act.wheel_speed_index];
+      }
+      act.motor->setVelocity(speed);
+    }
   }
 
   void ApplyJointCommands()
@@ -140,40 +184,11 @@ private:
         if (act.motor != it->second) {
           continue;
         }
-        if (!act.is_wheel) {
+        if (!act.is_drive_wheel) {
           it->second->setPosition(cmd.position[i]);
         }
         break;
       }
-    }
-  }
-
-  void ApplyWheelSpeed()
-  {
-    my_robot_msgs::msg::WheelSpeeds speeds_msg;
-    double legacy_speed = 0.0;
-    bool use_speeds = false;
-    {
-      std::lock_guard<std::mutex> lock(mutex_);
-      legacy_speed = wheel_speed_;
-      if (has_wheel_speeds_ && wheel_speeds_.valid) {
-        speeds_msg = wheel_speeds_;
-        use_speeds = true;
-      }
-    }
-
-    for (Actuator & act : actuators_) {
-      if (!act.is_wheel) {
-        continue;
-      }
-      act.motor->setPosition(INFINITY);
-      double speed = legacy_speed;
-      if (use_speeds && act.wheel_speed_index >= 0 &&
-        static_cast<size_t>(act.wheel_speed_index) < speeds_msg.speeds.size())
-      {
-        speed = speeds_msg.speeds[act.wheel_speed_index];
-      }
-      act.motor->setVelocity(speed);
     }
   }
 
@@ -196,13 +211,31 @@ private:
     joint_state_pub_->publish(msg);
   }
 
-  struct Actuator {
-    std::string name;
-    webots::Motor * motor;
-    webots::PositionSensor * sensor;
-    bool is_wheel;
-    int wheel_speed_index;
-  };
+  void PublishImu()
+  {
+    if (!has_imu_ || !imu_pub_) {
+      return;
+    }
+
+    const double * acc = imu_accel_->getValues();
+    const double * gyro = imu_gyro_->getValues();
+    const double * rpy = imu_inertial_->getRollPitchYaw();
+
+    sensor_msgs::msg::Imu msg;
+    msg.header.stamp = get_clock()->now();
+    msg.header.frame_id = "imu_link";
+    msg.linear_acceleration.x = acc[0];
+    msg.linear_acceleration.y = acc[1];
+    msg.linear_acceleration.z = acc[2];
+    msg.angular_velocity.x = gyro[0];
+    msg.angular_velocity.y = gyro[1];
+    msg.angular_velocity.z = gyro[2];
+    RpyToQuaternion(
+      rpy[0], rpy[1], rpy[2],
+      msg.orientation.x, msg.orientation.y, msg.orientation.z, msg.orientation.w);
+    msg.orientation_covariance[0] = -1.0;
+    imu_pub_->publish(msg);
+  }
 
   webots::Supervisor * robot_;
   int timestep_;
@@ -211,15 +244,19 @@ private:
 
   rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr joint_cmd_sub_;
   rclcpp::Subscription<my_robot_msgs::msg::WheelSpeeds>::SharedPtr wheel_speeds_sub_;
-  rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr wheel_speed_sub_;
   rclcpp::Publisher<sensor_msgs::msg::JointState>::SharedPtr joint_state_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr imu_pub_;
+
+  webots::Accelerometer * imu_accel_{nullptr};
+  webots::Gyro * imu_gyro_{nullptr};
+  webots::InertialUnit * imu_inertial_{nullptr};
+  bool has_imu_{false};
 
   std::mutex mutex_;
   sensor_msgs::msg::JointState joint_commands_;
   bool has_joint_commands_{false};
   my_robot_msgs::msg::WheelSpeeds wheel_speeds_;
   bool has_wheel_speeds_{false};
-  double wheel_speed_{0.0};
 };
 
 int main(int argc, char ** argv)

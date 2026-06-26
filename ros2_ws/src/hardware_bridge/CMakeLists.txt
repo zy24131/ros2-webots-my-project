@@ -6,6 +6,7 @@ if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(fsm REQUIRED)
 find_package(my_robot_msgs REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(sensor_msgs REQUIRED)
@@ -26,6 +27,7 @@ include_directories(${WEBOTS_HOME}/include/controller/cpp)
 add_executable(ros2_bridge_bin src/ros2_bridge.cpp)
 ament_target_dependencies(
   ros2_bridge_bin
+  fsm
   my_robot_msgs
   rclcpp
   sensor_msgs

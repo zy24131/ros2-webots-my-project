@@ -1,0 +1,9 @@
+/**:
+  ros__parameters:
+    qos:
+      mode_pub:
+        profile: reliable
+        depth: 10
+      fsm_state_pub:
+        profile: reliable
+        depth: 10

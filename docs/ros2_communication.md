@@ -28,27 +28,26 @@
 
 | 话题 | 类型 | 发布者 | 订阅者 | 说明 |
 |------|------|--------|--------|------|
-| `/my_robot/mode` | `String` | `robot_fsm` | `steering_controller`、`mobility_controller` | FSM 当前模式 |
-| `/my_robot/fsm_state` | `Int32` | `robot_fsm` | 调试 | case 0~5 |
-| `/my_robot/steering_wheel` | `Float64` | 外部 | `steering_controller` | 有符号转向角（度） |
-| `/my_robot/joint_states` | `JointState` | `hardware_bridge` | `actuator_executor` | 12 关节反馈 |
-| `/my_robot/system_ready` | `Bool` | `actuator_executor` | 可选监听 | joint_states 就绪后为 true |
+| `/my_robot/mode` | `String` | `fsm` | `steering_control` | FSM 当前模式 |
+| `/my_robot/fsm_state` | `Int32` | `fsm` | 调试 | case 0~5 |
+| `/my_robot/steering_input` | `Float64` | 外部 | `steering_control` | 方向盘输入，有符号转向角（度） |
+| `/my_robot/joint_states` | `JointState` | `hardware_bridge` | `actuator_control` | 12 关节反馈 |
+| `/my_robot/imu` | `Imu` | `hardware_bridge` | 可选 | 模型中心 IMU（Webots） |
 
 ### 2. 内部 Topic（`/my_robot/internal/`，节点间专用）
 
 | 话题 | 类型 | 发布者 | 订阅者 | 说明 |
 |------|------|--------|--------|------|
-| `/my_robot/internal/steering_curvature` | `Float64` | `steering_controller` | `mobility_controller` | 曲率 κ |
-| `/my_robot/internal/wheel_speeds` | `WheelSpeeds` | `mobility_controller` | `hardware_bridge` | 四轮差速 rad/s |
-| `/my_robot/internal/wheel_speed` | `Float64` | `mobility_controller` | `hardware_bridge` | 兼容，四轮同速 |
-| `/my_robot/steering_command` | `SteeringCommand` | `steering_controller` | `actuator_executor` | 8 关节目标 |
-| `/my_robot/joint_commands` | `JointState` | `actuator_executor` | `hardware_bridge` | 8 腿最终命令 |
+| `/my_robot/internal/steering_curvature` | `Float64` | `steering_control` | （预留） | 曲率 κ |
+| `/my_robot/internal/wheel_speeds` | `WheelSpeeds` | `wheel_speed_control` | `hardware_bridge` | 四轮轮速 rad/s（当前固定 0） |
+| `/my_robot/steering_command` | `SteeringCommand` | `steering_control` | `actuator_control` | 8 关节目标 |
+| `/my_robot/joint_commands` | `JointState` | `actuator_control` | `hardware_bridge` | 8 腿最终命令 |
 
 ### 2. Action（动作）— 1 个
 
 | Action | 服务端 | 客户端 | 用途 |
 |--------|--------|--------|------|
-| `/set_track_width` | `actuator_executor` | `robot_fsm` | 窄/宽轮距切换，带 progress 反馈与 success 结果 |
+| `/set_track_width` | `actuator_control` | `fsm` | 窄/宽轮距切换，带 progress 反馈与 success 结果 |
 
 定义文件：`my_robot_msgs/action/SetTrackWidth.action`
 
@@ -56,8 +55,8 @@
 
 | Service | 服务端 | 用途 |
 |---------|--------|------|
-| `/my_robot/set_motion_mode` | `robot_fsm` | 0=转向 1=顺时针自转 2=逆时针自转 |
-| `/my_robot/set_track_width_switch` | `robot_fsm` | 0=窄轮距 1=宽轮距（意图；实际伸缩走 Action） |
+| `/my_robot/set_motion_mode` | `fsm` | 0=转向 1=顺时针自转 2=逆时针自转 |
+| `/my_robot/set_track_width_switch` | `fsm` | 0=窄轮距 1=宽轮距（意图；实际伸缩走 Action） |
 
 定义文件：`my_robot_msgs/srv/SetMotionMode.srv`、`SetTrackWidthSwitch.srv`
 
@@ -77,23 +76,63 @@ ros2 service call /my_robot/set_track_width_switch my_robot_msgs/srv/SetTrackWid
 
 ### 5. Parameter（参数）
 
-集中配置：`robot_fsm/config/my_robot.yaml`
+集中参考：`fsm/config/my_robot.yaml`  
+Launch 实际加载：`fsm/config/*_params.yaml`（`/**` 通配，Humble 兼容）
 
 | 节点 | 主要参数 |
 |------|----------|
-| `actuator_executor` | `position_tolerance`、`wide_steering_angle`、`command_timeout_ms` |
-| `mobility_controller` | `wheel_speed`、`track_half_width_narrow`、`track_half_width_wide` |
+| `actuator_control` | `position_tolerance`、`wide_neutral_angle_deg`、`command_timeout_ms` |
+| 各节点 | `qos.<端点名>.profile` / `depth` / `reliability` 等（见下节） |
 
-Launch 通过 `<param from="..." path="节点名"/>` 加载。
+### 5.1 QoS（服务质量）
+
+工具：`fsm::QoSFromParams()`（`fsm/include/fsm/qos.hpp`）
+
+每个 pub/sub 在参数里用 `qos.<端点名>` 配置，例如：
+
+```yaml
+qos:
+  steering_command_pub:
+    profile: reliable
+    depth: 10
+  steering_curvature_pub:
+    profile: sensor_data
+    depth: 10
+```
+
+| 字段 | 可选值 | 说明 |
+|------|--------|------|
+| `profile` | `default`、`sensor_data`、`reliable`、`best_effort`、`system_default` | 预设策略 |
+| `depth` | 正整数 | 队列深度 |
+| `reliability` | `best_effort`、`reliable`、空 | 覆盖 profile 的可靠性 |
+| `durability` | `volatile`、`transient_local`、空 | 持久性 |
+| `history` | `keep_last`、`keep_all`、空 | 历史策略 |
+
+默认策略（发布者与订阅者需匹配）：
+
+| 话题类型 | 默认 profile | 原因 |
+|----------|--------------|------|
+| `mode`、`steering_command`、`joint_commands` | `reliable` | 状态/控制，不能丢 |
+| `steering_input`、`joint_states`、`steering_curvature`、`wheel_speeds` | `sensor_data` | 高频流，取最新即可 |
+
+运行时覆盖示例：
+
+```bash
+ros2 run steering_control steering_control_node --ros-args \
+  -p qos.steering_input_sub.profile:=reliable \
+  -p qos.steering_input_sub.depth:=5
+```
+
+查看实际 QoS：`ros2 topic info /my_robot/joint_commands -v`
 
 ### 6. Timer（定时器）
 
 | 节点 | 周期 | 作用 |
 |------|------|------|
-| `steering_controller` | 20 ms | 发布 steering_command / curvature |
-| `actuator_executor` | 20 ms | 合并命令、看门狗、Action 插值 |
-| `mobility_controller` | 50 ms | 发布 wheel_speeds |
-| `robot_fsm` | 50 ms | 状态机 Tick |
+| `steering_control` | 20 ms | 发布 steering_command / curvature |
+| `actuator_control` | 20 ms | 合并命令、看门狗、Action 插值 |
+| `wheel_speed_control` | 50 ms | 发布 wheel_speeds |
+| `fsm` | 50 ms | 状态机 Tick |
 
 ---
 
@@ -103,14 +142,14 @@ Launch 通过 `<param from="..." path="节点名"/>` 加载。
 外部输入 (Service / Float64)
         │
         ▼
-   robot_fsm ────── Action ──────► actuator_executor ── Topic ──► hardware_bridge
+   fsm ────── Action ──────► actuator_control ── Topic ──► hardware_bridge
         │ mode                           ▲ steering_command          (Webots / 未来 CAN)
         │                                │ joint_states
         ▼                                │
-steering_controller ─────────────────────┘
+steering_control ─────────────────────┘
         │ steering_curvature
         ▼
-mobility_controller ── Topic (wheel_speeds) ──► hardware_bridge
+wheel_speed_control ── Topic (wheel_speeds) ──► hardware_bridge
 ```
 
 ---
@@ -124,7 +163,7 @@ mobility_controller ── Topic (wheel_speeds) ──► hardware_bridge
 | **Component（组件化）** | 未用 | 多节点合并单进程，降低延迟 |
 | **tf2** | 未用 | 坐标变换、SLAM、多传感器融合 |
 | **ros2_control** | 未用 | 标准关节/控制器框架 |
-| **QoS 精细配置** | 基本默认（队列深度 10） | 实时/可靠传输要求极高时 |
+| **QoS 精细配置** | 已用（参数可配） | 控制/状态可靠，传感器流 best effort |
 | **参数动态回调** | 未用 | 运行中改参并立即生效 |
 
 这些不是「必须补齐」；按需求再加即可。
@@ -148,7 +187,7 @@ ROS2 通信**只在上位机进程之间**（或仿真桥接）使用。
 真机 CAN **不是 ROS2 的一种通信**，需要 L1 驱动把 Topic 转成 CAN 帧：
 
 ```text
-actuator_executor  --Topic-->  can_bridge（待开发）  --CAN-->  下位机 ECU
+actuator_control  --Topic-->  can_bridge（待开发）  --CAN-->  下位机 ECU
 ```
 
 上层 ROS 节点接口可保持不变，不必为了 CAN 再换一种 ROS 通信类型。

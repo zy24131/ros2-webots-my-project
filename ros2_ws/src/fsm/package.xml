@@ -1,17 +1,16 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>hardware_bridge</name>
-  <version>0.2.0</version>
-  <description>L1 hardware IO bridge (Webots sim; replace driver for real valves/PLC).</description>
-  <maintainer email="zy2413105@buaa.edu.cn">xujunming</maintainer>
+  <name>fsm</name>
+  <version>0.1.0</version>
+  <description>FSM 状态机节点 + 公共配置（motion_mode、joint_config、QoS）。</description>
+  <maintainer email="user@todo.todo">user</maintainer>
   <license>Apache-2.0</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
-  <depend>fsm</depend>
   <depend>my_robot_msgs</depend>
   <depend>rclcpp</depend>
-  <depend>sensor_msgs</depend>
+  <depend>rclcpp_action</depend>
   <depend>std_msgs</depend>
 
   <export>

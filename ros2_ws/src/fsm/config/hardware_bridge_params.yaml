@@ -1,0 +1,15 @@
+/**:
+  ros__parameters:
+    qos:
+      joint_commands_sub:
+        profile: reliable
+        depth: 10
+      wheel_speeds_sub:
+        profile: sensor_data
+        depth: 10
+      joint_states_pub:
+        profile: sensor_data
+        depth: 10
+      imu_pub:
+        profile: sensor_data
+        depth: 10

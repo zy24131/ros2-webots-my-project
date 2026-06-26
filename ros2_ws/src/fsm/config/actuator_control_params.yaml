@@ -1,0 +1,15 @@
+/**:
+  ros__parameters:
+    position_tolerance: 0.05
+    wide_neutral_angle_deg: 45.0
+    command_timeout_ms: 450
+    qos:
+      joint_commands_pub:
+        profile: reliable
+        depth: 10
+      joint_states_sub:
+        profile: sensor_data
+        depth: 10
+      steering_command_sub:
+        profile: reliable
+        depth: 10
