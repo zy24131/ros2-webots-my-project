@@ -3,7 +3,7 @@
 <package format="3">
   <name>fsm</name>
   <version>0.1.0</version>
-  <description>FSM 状态机节点 + 公共配置（motion_mode、joint_config、QoS）。</description>
+  <description>FSM 状态机节点 + 公共配置（motion、joint_config、QoS）。</description>
   <maintainer email="user@todo.todo">user</maintainer>
   <license>Apache-2.0</license>
 

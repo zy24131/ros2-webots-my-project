@@ -1,6 +1,0 @@
-/**:
-  ros__parameters:
-    qos:
-      wheel_speeds_pub:
-        profile: sensor_data
-        depth: 10

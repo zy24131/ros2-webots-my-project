@@ -1,0 +1,5 @@
+# Track 轮距意图：0=窄  1=宽（FSM 检测到与当前状态不一致后发起 SetTrackAction）
+int32 track
+---
+bool success
+string message

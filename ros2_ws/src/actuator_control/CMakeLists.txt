@@ -15,6 +15,9 @@ find_package(std_msgs REQUIRED)
 find_package(rosidl_default_runtime REQUIRED)
 
 add_executable(actuator_control_node src/actuator_control_node.cpp)
+target_include_directories(actuator_control_node PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include>")
 ament_target_dependencies(
   actuator_control_node
   fsm
@@ -27,5 +30,8 @@ ament_target_dependencies(
 
 install(TARGETS actuator_control_node
   DESTINATION lib/${PROJECT_NAME})
+
+install(DIRECTORY include/
+  DESTINATION include)
 
 ament_package()

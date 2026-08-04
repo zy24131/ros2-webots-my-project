@@ -7,6 +7,8 @@ ros2_ws/log/
 webots/controllers/**/build/
 webots/controllers/**/*.o
 webots/controllers/**/*.d
+webots/controllers/ros2_bridge/ros2_bridge
+webots/controllers/ros2_bridge/ros2_bridge_bin
 webots/worlds/.my_project.wbproj
 
 # Editor / OS

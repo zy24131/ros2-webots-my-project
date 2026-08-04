@@ -11,10 +11,17 @@ find_package(rclcpp REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(std_msgs REQUIRED)
 
-add_library(${PROJECT_NAME} SHARED src/motion_mode.cpp)
+add_library(${PROJECT_NAME} SHARED
+  src/motion.cpp
+  src/track_action_client.cpp)
 target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<INSTALL_INTERFACE:include>")
+ament_target_dependencies(
+  ${PROJECT_NAME}
+  my_robot_msgs
+  rclcpp
+  rclcpp_action)
 
 add_executable(fsm_node src/fsm_node.cpp)
 ament_target_dependencies(
@@ -39,6 +46,6 @@ install(DIRECTORY launch config
 
 ament_export_include_directories(include)
 ament_export_libraries(${PROJECT_NAME})
-ament_export_dependencies(rclcpp)
+ament_export_dependencies(rclcpp rclcpp_action my_robot_msgs)
 
 ament_package()

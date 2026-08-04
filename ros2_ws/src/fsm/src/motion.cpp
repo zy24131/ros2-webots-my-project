@@ -1,4 +1,4 @@
-#include "fsm/motion_mode.hpp"
+#include "fsm/motion.hpp"
 
 namespace fsm {
 

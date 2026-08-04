@@ -1,5 +1,0 @@
-# 轮距意图：0=窄轮距  1=宽轮距（FSM 检测到与当前状态不一致后发起 Action）
-int32 track_width
----
-bool success
-string message

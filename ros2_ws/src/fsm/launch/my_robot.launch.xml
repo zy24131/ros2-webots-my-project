@@ -1,4 +1,10 @@
+<!-- Default entry: run_webots.sh (hardware_bridge) + this launch (control stack) -->
 <launch>
-  <!-- 仿真：Webots + hardware_bridge 由 run_webots.sh 启动 -->
-  <include file="$(find-pkg-share fsm)/launch/control_bringup.launch.xml"/>
+  <arg name="params_file"
+       default="$(find-pkg-share fsm)/config/my_robot.yaml"
+       description="Override stack parameters"/>
+
+  <include file="$(find-pkg-share fsm)/launch/control_bringup.launch.xml">
+    <arg name="params_file" value="$(var params_file)"/>
+  </include>
 </launch>

@@ -1,9 +1,10 @@
-// 运动模式 / FSM 状态 / Service 意图的单一来源（SSOT）。
+// 运动 / 轮距 命名规范（SSOT）
 //
-// RobotMode     — /my_robot/mode 字符串与 /my_robot/fsm_state 数值（case 0~5）
-// MotionIntent  — SetMotionMode.srv（用户意图：转向 / 自转）
-// TrackWidthIntent — SetTrackWidthSwitch.srv（轮距意图）
-// FsmTrigger    — fsm 节点内部触发器
+// Motion*  — 转向、顺/逆时针自转（SetMotion.srv、Motion）
+// Track*   — 窄/宽轮距（SetTrack.srv、SetTrackAction.action、TrackIntent）
+//
+// RobotMode  — /my_robot/mode 字符串（case 0~5）
+// FsmTrigger — fsm 节点内部触发器
 
 #pragma once
 
@@ -23,7 +24,7 @@ inline constexpr const char kSpinRight[] = "spin_right";
 inline constexpr const char kUnknown[] = "unknown";
 }  // namespace mode_str
 
-/// FSM 稳定/过渡/自转状态，与 fsm_state Int32 一致
+/// FSM 稳定/过渡/自转状态（case 0~5，经 /my_robot/mode 发布）
 enum RobotMode : int32_t {
   kNarrowTrack = 0,
   kSwitchToWide = 1,
@@ -35,31 +36,32 @@ enum RobotMode : int32_t {
 
 constexpr RobotMode kRobotModeUnknown = static_cast<RobotMode>(-1);
 
-/// SetMotionMode.srv：0=转向 1=顺时针自转 2=逆时针自转
-enum MotionIntent : int32_t {
-  kSteering = 0,
-  kSpinClockwise = 1,
-  kSpinCounterClockwise = 2,
+/// SetMotion.srv：0=转向 1=顺时针自转 2=逆时针自转
+enum Motion : int32_t {
+  kMotionSteering = 0,
+  kMotionSpinClockwise = 1,
+  kMotionSpinCounterClockwise = 2,
 };
 
-/// SetTrackWidthSwitch.srv：0=窄 1=宽（用户意图，非当前 FSM 状态）
-enum TrackWidthIntent : int32_t {
+constexpr Motion kSteering = kMotionSteering;
+constexpr Motion kSpinClockwise = kMotionSpinClockwise;
+constexpr Motion kSpinCounterClockwise = kMotionSpinCounterClockwise;
+
+/// SetTrack.srv：0=窄 1=宽（用户意图，非当前 FSM 状态）
+enum TrackIntent : int32_t {
   kTrackNarrow = 0,
   kTrackWide = 1,
 };
 
 enum class FsmTrigger {
   kNone,
-  kSpinClockwise,
-  kSpinCounterClockwise,
-  kReturnFromSpin,
-  kRequestWide,
-  kRequestNarrow,
-  kActionSucceeded,
-  kActionFailed,
+  kMotionSpinClockwise,
+  kMotionSpinCounterClockwise,
+  kMotionReturnFromSpin,
+  kTrackRequestWide,
+  kTrackRequestNarrow,
 };
 
-// 兼容旧名
 using FsmState = RobotMode;
 
 const char * ModeToString(RobotMode mode);
@@ -75,13 +77,11 @@ inline bool IsSwitching(RobotMode mode)
   return mode == kSwitchToWide || mode == kSwitchToNarrow;
 }
 
-/// 切换失败或取消时回到的稳定轮距状态
 inline RobotMode StableTrackBeforeSwitch(RobotMode switching)
 {
   return switching == kSwitchToWide ? kNarrowTrack : kWideTrack;
 }
 
-/// 切换成功后的稳定轮距状态
 inline RobotMode StableTrackAfterSwitch(RobotMode switching)
 {
   return switching == kSwitchToWide ? kWideTrack : kNarrowTrack;
@@ -97,12 +97,12 @@ inline bool IsTrackDriving(RobotMode mode)
   return mode == kNarrowTrack || mode == kWideTrack;
 }
 
-inline bool IsValidMotionIntent(int32_t value)
+inline bool IsValidMotion(int32_t value)
 {
-  return value >= kSteering && value <= kSpinCounterClockwise;
+  return value >= kMotionSteering && value <= kMotionSpinCounterClockwise;
 }
 
-inline bool IsValidTrackWidthIntent(int32_t value)
+inline bool IsValidTrackIntent(int32_t value)
 {
   return value == kTrackNarrow || value == kTrackWide;
 }

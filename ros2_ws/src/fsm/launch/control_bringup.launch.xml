@@ -1,14 +1,25 @@
+<!-- L2/L3 control stack (no hardware_bridge). Params: my_robot.yaml -->
 <launch>
-  <node pkg="fsm" exec="fsm_node" output="screen">
-    <param from="$(find-pkg-share fsm)/config/fsm_params.yaml"/>
+  <arg name="params_file"
+       default="$(find-pkg-share fsm)/config/my_robot.yaml"
+       description="Shared stack parameters (SSOT)"/>
+  <arg name="output" default="screen" description="Node log output sink"/>
+
+  <!-- L3 -->
+  <node pkg="fsm" exec="fsm_node" name="fsm" output="$(var output)">
+    <param from="$(var params_file)"/>
   </node>
-  <node pkg="steering_control" exec="steering_control_node" output="screen">
-    <param from="$(find-pkg-share fsm)/config/steering_control_params.yaml"/>
+
+  <!-- L2 -->
+  <node pkg="steering_control" exec="steering_control_node" name="steering_control" output="$(var output)">
+    <param from="$(var params_file)"/>
   </node>
-  <node pkg="actuator_control" exec="actuator_control_node" output="screen">
-    <param from="$(find-pkg-share fsm)/config/actuator_control_params.yaml"/>
+
+  <node pkg="actuator_control" exec="actuator_control_node" name="actuator_control" output="$(var output)">
+    <param from="$(var params_file)"/>
   </node>
-  <node pkg="wheel_speed_control" exec="wheel_speed_control_node" output="screen">
-    <param from="$(find-pkg-share fsm)/config/wheel_speed_control_params.yaml"/>
+
+  <node pkg="wheel_speed_control" exec="wheel_speed_control_node" name="wheel_speed_control" output="$(var output)">
+    <param from="$(var params_file)"/>
   </node>
 </launch>

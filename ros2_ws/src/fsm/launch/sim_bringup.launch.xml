@@ -1,4 +1,0 @@
-<launch>
-  <!-- Webots 由 run_webots.sh 启动；此处仅说明仿真侧依赖 hardware_bridge 控制器 -->
-  <node pkg="hardware_bridge" exec="ros2_bridge_bin" output="screen" if="false"/>
-</launch>

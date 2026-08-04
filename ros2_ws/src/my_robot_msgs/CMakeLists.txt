@@ -8,9 +8,9 @@ find_package(std_msgs REQUIRED)
 rosidl_generate_interfaces(${PROJECT_NAME}
   "msg/SteeringCommand.msg"
   "msg/WheelSpeeds.msg"
-  "action/SetTrackWidth.action"
-  "srv/SetMotionMode.srv"
-  "srv/SetTrackWidthSwitch.srv"
+  "action/SetTrackAction.action"
+  "srv/SetMotion.srv"
+  "srv/SetTrack.srv"
   DEPENDENCIES std_msgs
 )
 

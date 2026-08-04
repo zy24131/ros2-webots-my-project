@@ -3,7 +3,8 @@
 #include <chrono>
 #include <memory>
 
-#include "my_robot_common/qos.hpp"
+#include "fsm/qos.hpp"
+#include "fsm/topic_names.hpp"
 #include "my_robot_msgs/msg/wheel_speeds.hpp"
 #include "rclcpp/rclcpp.hpp"
 
@@ -14,8 +15,8 @@ public:
   : Node("wheel_speed_control")
   {
     wheel_speeds_pub_ = create_publisher<my_robot_msgs::msg::WheelSpeeds>(
-      "/my_robot/internal/wheel_speeds",
-      my_robot_common::QoSFromParams(this, "qos.wheel_speeds_pub", "sensor_data"));
+      fsm::topics::kWheelSpeeds,
+      fsm::QoSFromParams(this, "qos.wheel_speeds_pub", "sensor_data"));
 
     timer_ = create_wall_timer(
       std::chrono::milliseconds(50),

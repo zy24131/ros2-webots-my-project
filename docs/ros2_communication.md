@@ -28,8 +28,7 @@
 
 | 话题 | 类型 | 发布者 | 订阅者 | 说明 |
 |------|------|--------|--------|------|
-| `/my_robot/mode` | `String` | `fsm` | `steering_control` | FSM 当前模式 |
-| `/my_robot/fsm_state` | `Int32` | `fsm` | 调试 | case 0~5 |
+| `/my_robot/mode` | `String` | `fsm` | `steering_control` | FSM 当前模式（case 0~5） |
 | `/my_robot/steering_input` | `Float64` | 外部 | `steering_control` | 方向盘输入，有符号转向角（度） |
 | `/my_robot/joint_states` | `JointState` | `hardware_bridge` | `actuator_control` | 12 关节反馈 |
 | `/my_robot/imu` | `Imu` | `hardware_bridge` | 可选 | 模型中心 IMU（Webots） |
@@ -38,7 +37,6 @@
 
 | 话题 | 类型 | 发布者 | 订阅者 | 说明 |
 |------|------|--------|--------|------|
-| `/my_robot/internal/steering_curvature` | `Float64` | `steering_control` | （预留） | 曲率 κ |
 | `/my_robot/internal/wheel_speeds` | `WheelSpeeds` | `wheel_speed_control` | `hardware_bridge` | 四轮轮速 rad/s（当前固定 0） |
 | `/my_robot/steering_command` | `SteeringCommand` | `steering_control` | `actuator_control` | 8 关节目标 |
 | `/my_robot/joint_commands` | `JointState` | `actuator_control` | `hardware_bridge` | 8 腿最终命令 |
@@ -47,24 +45,24 @@
 
 | Action | 服务端 | 客户端 | 用途 |
 |--------|--------|--------|------|
-| `/set_track_width` | `actuator_control` | `fsm` | 窄/宽轮距切换，带 progress 反馈与 success 结果 |
+| `/set_track` | `actuator_control` | `fsm` | 窄/宽轮距切换，带 progress 反馈与 success 结果 |
 
-定义文件：`my_robot_msgs/action/SetTrackWidth.action`
+定义文件：`my_robot_msgs/action/SetTrackAction.action`
 
 ### 3. Service（服务）— 2 个
 
 | Service | 服务端 | 用途 |
 |---------|--------|------|
-| `/my_robot/set_motion_mode` | `fsm` | 0=转向 1=顺时针自转 2=逆时针自转 |
-| `/my_robot/set_track_width_switch` | `fsm` | 0=窄轮距 1=宽轮距（意图；实际伸缩走 Action） |
+| `/my_robot/set_motion` | `fsm` | 0=转向 1=顺时针自转 2=逆时针自转 |
+| `/my_robot/set_track` | `fsm` | 0=窄轮距 1=宽轮距（Track 意图；伸缩走 SetTrackAction） |
 
-定义文件：`my_robot_msgs/srv/SetMotionMode.srv`、`SetTrackWidthSwitch.srv`
+定义文件：`my_robot_msgs/srv/SetMotion.srv`、`SetTrack.srv`
 
 示例：
 
 ```bash
-ros2 service call /my_robot/set_motion_mode my_robot_msgs/srv/SetMotionMode "{mode: 0}"
-ros2 service call /my_robot/set_track_width_switch my_robot_msgs/srv/SetTrackWidthSwitch "{track_width: 1}"
+ros2 service call /my_robot/set_motion my_robot_msgs/srv/SetMotion "{mode: 0}"
+ros2 service call /my_robot/set_track my_robot_msgs/srv/SetTrack "{track: 1}"
 ```
 
 ### 4. 自定义消息
@@ -76,13 +74,17 @@ ros2 service call /my_robot/set_track_width_switch my_robot_msgs/srv/SetTrackWid
 
 ### 5. Parameter（参数）
 
-集中参考：`fsm/config/my_robot.yaml`  
-Launch 实际加载：`fsm/config/*_params.yaml`（`/**` 通配，Humble 兼容）
+唯一配置文件：`fsm/config/my_robot.yaml`  
+Launch 与各节点通过 `<param from=".../my_robot.yaml"/>` 或 `--params-file` 加载；launch 中 `name=` 须与 yaml 顶层键一致（如 `steering_control`）。
+
+共享参数放在 `/**:` 段（如 `wide_neutral_angle_deg`），各节点段只写本节点专有项。
 
 | 节点 | 主要参数 |
 |------|----------|
-| `actuator_control` | `position_tolerance`、`wide_neutral_angle_deg`、`command_timeout_ms` |
-| 各节点 | `qos.<端点名>.profile` / `depth` / `reliability` 等（见下节） |
+| `/**` | `wide_neutral_angle_deg`（steering_control、actuator_control 共用） |
+| `actuator_control` | `position_tolerance`、`command_timeout_ms`、`track_step_ratio`、QoS |
+| `steering_control` | `steering_deadband_deg`、QoS |
+| 各节点 | `qos.<端点名>.profile` / `depth` 等 |
 
 ### 5.1 QoS（服务质量）
 
@@ -94,9 +96,6 @@ Launch 实际加载：`fsm/config/*_params.yaml`（`/**` 通配，Humble 兼容�
 qos:
   steering_command_pub:
     profile: reliable
-    depth: 10
-  steering_curvature_pub:
-    profile: sensor_data
     depth: 10
 ```
 
@@ -113,7 +112,7 @@ qos:
 | 话题类型 | 默认 profile | 原因 |
 |----------|--------------|------|
 | `mode`、`steering_command`、`joint_commands` | `reliable` | 状态/控制，不能丢 |
-| `steering_input`、`joint_states`、`steering_curvature`、`wheel_speeds` | `sensor_data` | 高频流，取最新即可 |
+| `steering_input`、`joint_states`、`wheel_speeds` | `sensor_data` | 高频流，取最新即可 |
 
 运行时覆盖示例：
 
@@ -129,7 +128,7 @@ ros2 run steering_control steering_control_node --ros-args \
 
 | 节点 | 周期 | 作用 |
 |------|------|------|
-| `steering_control` | 20 ms | 发布 steering_command / curvature |
+| `steering_control` | 20 ms | 发布 steering_command |
 | `actuator_control` | 20 ms | 合并命令、看门狗、Action 插值 |
 | `wheel_speed_control` | 50 ms | 发布 wheel_speeds |
 | `fsm` | 50 ms | 状态机 Tick |
@@ -147,7 +146,7 @@ ros2 run steering_control steering_control_node --ros-args \
         │                                │ joint_states
         ▼                                │
 steering_control ─────────────────────┘
-        │ steering_curvature
+        │
         ▼
 wheel_speed_control ── Topic (wheel_speeds) ──► hardware_bridge
 ```
@@ -175,8 +174,8 @@ wheel_speed_control ── Topic (wheel_speeds) ──► hardware_bridge
 | 场景 | 选用 | 本项目例子 |
 |------|------|------------|
 | 连续控制量、状态流 | **Topic** | 关节角、轮速、mode |
-| 要等待完成、有进度 | **Action** | 轮距切换 SetTrackWidth |
-| 偶发、一问一答 | **Service** | 模式切换 SetMotionMode / SetTrackWidthSwitch |
+| 要等待完成、有进度 | **Action** | 轮距切换 SetTrackAction |
+| 偶发、一问一答 | **Service** | Motion：SetMotion / Track：SetTrack |
 
 ---
 

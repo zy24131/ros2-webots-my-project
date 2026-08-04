@@ -9,11 +9,9 @@ steering_control ──► /my_robot/steering_command (SteeringCommand)
         ▼
 actuator_control ──► /my_robot/joint_commands  (唯一发布者，450ms 看门狗)
         ▲
-        │ SetTrackWidth Action（轮距切换）
+        │ SetTrackAction（轮距切换）
 fsm ──► /my_robot/mode
 
-/my_robot/internal/steering_curvature     ← 内部话题，不对 HMI 暴露
-        ▼
 wheel_speed_control ──► /my_robot/internal/wheel_speeds
         ▼
 hardware_bridge (Webots) ──► joint_states
@@ -31,13 +29,13 @@ hardware_bridge (Webots) ──► joint_states
 
 ## 运动模式（SSOT）
 
-FSM 状态、Service 意图、`/my_robot/mode` 字符串统一在 `fsm/motion_mode.hpp`：
+FSM 状态、Service 意图、`/my_robot/mode` 字符串统一在 `fsm/motion.hpp`：
 
 | 类型 | 用途 |
 |------|------|
 | `RobotMode` | FSM 状态 + mode 话题（case 0~5） |
-| `MotionIntent` | `set_motion_mode` 服务（转向/自转意图） |
-| `TrackWidthIntent` | `set_track_width_switch` 服务 |
+| `Motion` | `set_motion` 服务（转向/自转） |
+| `TrackIntent` | `set_track` 服务（轮距意图） |
 | `FsmTrigger` | FSM 内部触发器 |
 
 辅助函数：`ModeToString` / `ModeFromString`、`IsTrackDriving`、`IsSwitching`、`IsSpin`。
@@ -92,8 +90,8 @@ ros2 launch fsm my_robot.launch.xml
 source ~/ros2_webots/my_project/ros2_ws/install/setup.bash
 
 # 转向 + 窄轮距
-ros2 service call /my_robot/set_motion_mode my_robot_msgs/srv/SetMotionMode "{mode: 0}"
-ros2 service call /my_robot/set_track_width_switch my_robot_msgs/srv/SetTrackWidthSwitch "{track_width: 0}"
+ros2 service call /my_robot/set_motion my_robot_msgs/srv/SetMotion "{mode: 0}"
+ros2 service call /my_robot/set_track my_robot_msgs/srv/SetTrack "{track: 0}"
 
 # 方向盘 30°（必须持续发，否则 450ms 后关节归零）
 ros2 topic pub /my_robot/steering_input std_msgs/msg/Float64 "{data: 30.0}" -r 20

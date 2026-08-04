@@ -1,0 +1,5 @@
+# Motion：0=转向  1=顺时针自转  2=逆时针自转
+int32 mode
+---
+bool success
+string message

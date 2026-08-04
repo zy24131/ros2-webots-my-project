@@ -24,8 +24,8 @@ fi
 PARAM_FILE=""
 if command -v ros2 >/dev/null 2>&1; then
   PKG_PREFIX="$(ros2 pkg prefix fsm 2>/dev/null || true)"
-  if [ -n "${PKG_PREFIX}" ] && [ -f "${PKG_PREFIX}/share/fsm/config/hardware_bridge_params.yaml" ]; then
-    PARAM_FILE="${PKG_PREFIX}/share/fsm/config/hardware_bridge_params.yaml"
+  if [ -n "${PKG_PREFIX}" ] && [ -f "${PKG_PREFIX}/share/fsm/config/my_robot.yaml" ]; then
+    PARAM_FILE="${PKG_PREFIX}/share/fsm/config/my_robot.yaml"
   fi
 fi
 

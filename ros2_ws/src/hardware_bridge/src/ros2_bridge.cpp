@@ -14,6 +14,7 @@
 
 #include "fsm/joint_config.hpp"
 #include "fsm/qos.hpp"
+#include "fsm/topic_names.hpp"
 #include "my_robot_msgs/msg/wheel_speeds.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/imu.hpp"
@@ -79,17 +80,17 @@ public:
     }
 
     joint_cmd_sub_ = create_subscription<sensor_msgs::msg::JointState>(
-      "/my_robot/joint_commands",
+      fsm::topics::kJointCommands,
       fsm::QoSFromParams(this, "qos.joint_commands_sub", "reliable"),
       std::bind(&HardwareBridgeNode::JointCommandCallback, this, std::placeholders::_1));
 
     wheel_speeds_sub_ = create_subscription<my_robot_msgs::msg::WheelSpeeds>(
-      "/my_robot/internal/wheel_speeds",
+      fsm::topics::kWheelSpeeds,
       fsm::QoSFromParams(this, "qos.wheel_speeds_sub", "sensor_data"),
       std::bind(&HardwareBridgeNode::WheelSpeedsCallback, this, std::placeholders::_1));
 
     joint_state_pub_ = create_publisher<sensor_msgs::msg::JointState>(
-      "/my_robot/joint_states",
+      fsm::topics::kJointStates,
       fsm::QoSFromParams(this, "qos.joint_states_pub", "sensor_data"));
 
     imu_accel_ = robot_->getAccelerometer("imu_accelerometer");
@@ -100,10 +101,10 @@ public:
       imu_gyro_->enable(timestep_);
       imu_inertial_->enable(timestep_);
       imu_pub_ = create_publisher<sensor_msgs::msg::Imu>(
-        "/my_robot/imu",
+        fsm::topics::kImu,
         fsm::QoSFromParams(this, "qos.imu_pub", "sensor_data"));
       has_imu_ = true;
-      RCLCPP_INFO(get_logger(), "IMU enabled at model center -> /my_robot/imu");
+      RCLCPP_INFO(get_logger(), "IMU enabled at model center -> %s", fsm::topics::kImu);
     } else {
       RCLCPP_WARN(get_logger(), "IMU devices not found in Webots model");
     }

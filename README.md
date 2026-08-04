@@ -10,7 +10,7 @@ my_project/
 │   ├── steering_control/    # L2：方向盘 → SteeringCommand
 │   ├── actuator_control/      # L2：唯一 joint_commands 发布者
 │   ├── wheel_speed_control/    # L2：曲率差速轮速
-│   └── fsm/                    # L3 状态机 + 公共头文件（motion_mode/joint_config/QoS）+ launch/config
+│   └── fsm/                    # L3 状态机 + 公共头文件（motion/joint_config/QoS）+ launch/config
 ├── run_webots.sh
 └── docs/
 ```
@@ -39,7 +39,7 @@ ROS2 通信机制说明见 [docs/ros2_communication.md](docs/ros2_communication.
 steering_input → steering_control → steering_command
                                            ↓
                                     actuator_control → joint_commands
-steering_curvature → wheel_speed_control → wheel_speeds
+wheel_speed_control → wheel_speeds → hardware_bridge
 ```
 
 ## 映射算法库 `robot_kinematics`
@@ -63,34 +63,38 @@ steering_curvature → wheel_speed_control → wheel_speeds
 |------|------|
 | `/my_robot/steering_input` | 方向盘输入，有符号转向角（度） |
 | `/my_robot/steering_command` | 8 关节目标（SteeringCommand） |
-| `/my_robot/steering_curvature` | 曲率 κ |
 | `/my_robot/joint_commands` | 8 腿最终命令（actuator_control 唯一发布） |
-| `/my_robot/wheel_speeds` | 四轮差速 rad/s |
+| `/my_robot/internal/wheel_speeds` | 四轮差速 rad/s |
 | `/my_robot/mode` | FSM 当前 mode |
-| `/my_robot/set_motion_mode` | 运动模式 Service |
-| `/my_robot/set_track_width_switch` | 轮距意图 Service |
-| `/set_track_width` | 轮距切换 Action |
+| `/my_robot/set_motion` | Motion Service（转向/自转） |
+| `/my_robot/set_track` | Track 轮距意图 Service |
+| `/set_track` | Track 轮距切换 SetTrackAction |
 
 模式切换示例：
 
 ```bash
 # 转向模式
-ros2 service call /my_robot/set_motion_mode my_robot_msgs/srv/SetMotionMode "{mode: 0}"
+ros2 service call /my_robot/set_motion my_robot_msgs/srv/SetMotion "{mode: 0}"
 # 逆时针自转
-ros2 service call /my_robot/set_motion_mode my_robot_msgs/srv/SetMotionMode "{mode: 2}"
+ros2 service call /my_robot/set_motion my_robot_msgs/srv/SetMotion "{mode: 2}"
 # 切宽轮距意图
-ros2 service call /my_robot/set_track_width_switch my_robot_msgs/srv/SetTrackWidthSwitch "{track_width: 1}"
+ros2 service call /my_robot/set_track my_robot_msgs/srv/SetTrack "{track: 1}"
 ```
 
 ## Launch 分层
 
 | 文件 | 内容 |
 |------|------|
-| `control_bringup.launch.xml` | 状态机 + 转向控制 + 执行器 + 轮速控制 |
-| `my_robot.launch.xml` | include control_bringup |
-| `sim_bringup.launch.xml` | 仿真说明（Webots 由 run_webots.sh 启动） |
+| `control_bringup.launch.xml` | L2/L3 四节点；`params_file` / `output` 可配 |
+| `my_robot.launch.xml` | 默认入口，转发 `params_file` → control_bringup |
 
-参数：`fsm/config/my_robot.yaml`
+参数 SSOT：`fsm/config/my_robot.yaml`（launch 与各节点 `<param from="$(var params_file)"/>`）
+
+自定义参数文件：
+
+```bash
+ros2 launch fsm my_robot.launch.xml params_file:=/path/to/custom.yaml
+```
 
 ## 修改指南
 
